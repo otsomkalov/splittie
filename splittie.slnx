@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Bolero.Web/Bolero.Web.fsproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Bolero.Web.Tests/Bolero.Web.Tests.fsproj" />
+  </Folder>
+</Solution>
