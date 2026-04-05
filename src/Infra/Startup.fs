@@ -1,7 +1,7 @@
-﻿#nowarn "20"
-
-[<RequireQualifiedAccess>]
+﻿[<RequireQualifiedAccess>]
 module Infra.Startup
+
+#nowarn "20"
 
 open Azure.Storage.Blobs
 open Azure.Storage.Queues

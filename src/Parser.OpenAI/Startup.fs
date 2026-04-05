@@ -1,6 +1,6 @@
-﻿#nowarn "20"
+﻿module Parser.OpenAI.Startup
 
-module Parser.OpenAI.Startup
+#nowarn "20"
 
 open System
 open System.ClientModel

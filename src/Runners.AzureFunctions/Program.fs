@@ -1,6 +1,6 @@
-#nowarn "20"
-
 module Runners.AzureFunctions.Startup
+
+#nowarn "20"
 
 open System
 open System.Reflection
