@@ -1,4 +1,4 @@
-﻿module Bolero.Web.Programs
+module Bolero.Web.Programs
 
 open System
 open Bolero.Html

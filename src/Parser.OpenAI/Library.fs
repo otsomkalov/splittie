@@ -29,7 +29,7 @@ type OpenAIReceiptParser(chatClient: ChatClient, logger: ILogger<OpenAIReceiptPa
 
   interface IReceiptParser with
     member this.Parse(imageUri) = task {
-      let! schemaBytes = File.ReadAllBytesAsync("schema.json")
+      let! schemaBytes = File.ReadAllBytesAsync(Path.Combine(AppContext.BaseDirectory, "schema.json"))
 
       let responseFormat =
         ChatResponseFormat.CreateJsonSchemaFormat("response_schema", BinaryData.FromBytes(schemaBytes), jsonSchemaIsStrict = true)

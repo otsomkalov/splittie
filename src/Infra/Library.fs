@@ -3,12 +3,16 @@
 open Azure.Storage.Queues
 open Domain
 open Domain.Repos
+open Domain.Settings
 open FsToolkit.ErrorHandling
+open Microsoft.Extensions.Options
 open MongoDB.Driver
 open Shared
 
-type ReceiptRepo(collection: IMongoCollection<Entities.Receipt>, queueService: QueueServiceClient) =
-  let queue = queueService.GetQueueClient("input")
+type ReceiptRepo
+  (collection: IMongoCollection<Entities.Receipt>, queueService: QueueServiceClient, storageOptions: IOptions<StorageSettings>) =
+  let storageSettings = storageOptions.Value
+  let queue = queueService.GetQueueClient(storageSettings.Queue)
 
   interface IReceiptRepo with
     member this.QueueParsing(receipt) = task {

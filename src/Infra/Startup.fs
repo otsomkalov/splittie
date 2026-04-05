@@ -29,6 +29,7 @@ let private configureQueueClient (cfg: IConfiguration) =
 
 let addInfra (cfg: IConfiguration) (services: IServiceCollection) =
   services.Configure<DatabaseSettings>(cfg.GetRequiredSection DatabaseSettings.SectionName)
+  services.Configure<Domain.Settings.StorageSettings>(cfg.GetRequiredSection Domain.Settings.StorageSettings.SectionName)
 
   services.BuildSingleton<IMongoClient, IConfiguration>(configureMongoClient)
   services.BuildSingleton<IMongoDatabase, IOptions<DatabaseSettings>, IMongoClient>(configureMongoDatabase)

@@ -1,4 +1,4 @@
-﻿module Bolero.Web.Repos
+module Bolero.Web.Repos
 
 open System.Threading.Tasks
 open Domain

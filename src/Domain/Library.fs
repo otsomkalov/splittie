@@ -60,7 +60,8 @@ type GetError =
   | Access
 
 type ParsingResult =
-  { Items: Receipt.Item list
+  { Date: DateTime
+    Items: Receipt.Item list
     Fees: Receipt.Fee list }
 
 type IReceiptParser =

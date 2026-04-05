@@ -1,4 +1,4 @@
-﻿module Bolero.Web.Shared
+module Bolero.Web.Shared
 
 open Bolero.Html
 

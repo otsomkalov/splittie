@@ -1,4 +1,4 @@
-﻿module Bolero.Web.Startup
+module Bolero.Web.Startup
 
 #nowarn "20"
 

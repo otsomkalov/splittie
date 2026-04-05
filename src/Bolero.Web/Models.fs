@@ -1,4 +1,4 @@
-﻿module Bolero.Web.Models
+module Bolero.Web.Models
 
 type ItemId =
   | ItemId of string

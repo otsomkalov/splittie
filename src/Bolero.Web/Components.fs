@@ -1,4 +1,4 @@
-﻿module Bolero.Web.Components
+module Bolero.Web.Components
 
 open Bolero
 open Bolero.Html

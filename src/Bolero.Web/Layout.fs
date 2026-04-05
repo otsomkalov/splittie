@@ -1,4 +1,4 @@
-﻿[<RequireQualifiedAccess>]
+[<RequireQualifiedAccess>]
 module Bolero.Web.Layout
 
 open Bolero.Html

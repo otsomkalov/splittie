@@ -20,12 +20,14 @@ type ReceiptFunctions
   (
     storageClient: BlobServiceClient,
     imageOptions: IOptions<ImageSettings>,
+    storageOptions: IOptions<StorageSettings>,
     authService: IAuthenticationService,
     receiptRepo: IReceiptRepo,
     parser: IReceiptParser,
     logger: ILogger<ReceiptFunctions>
   ) =
   let imageSettings = imageOptions.Value
+  let storageSettings = storageOptions.Value
 
   [<Function("CreateReceipt")>]
   member this.CreateReceipt([<HttpTrigger("post", Route = "receipts")>] request: HttpRequest) : Task<IActionResult> =
@@ -37,7 +39,8 @@ type ReceiptFunctions
         match receiptFile with
         | Some receiptFile' when imageSettings.SupportedMimeTypes |> Seq.contains receiptFile'.ContentType ->
 
-          let containerClient = storageClient.GetBlobContainerClient("input")
+          let containerClient =
+            storageClient.GetBlobContainerClient(storageSettings.Container)
 
           let id = System.Guid.NewGuid() |> string
 
@@ -95,9 +98,9 @@ type ReceiptFunctions
       | Error(RequestError.Validation errors) -> BadRequestObjectResult(errors))
 
   [<Function("ParseReceipt")>]
-  member this.ParseReceipt([<QueueTrigger("input")>] request: {| Id: string |}, _: FunctionContext) : Task<unit> = task {
+  member this.ParseReceipt([<QueueTrigger("%Storage:Queue%")>] request: {| Id: string |}, _: FunctionContext) : Task<unit> = task {
 
-    let container = storageClient.GetBlobContainerClient "input"
+    let container = storageClient.GetBlobContainerClient(storageSettings.Container)
 
     let! receipt = receiptRepo.Get(ReceiptId request.Id)
 
@@ -115,7 +118,7 @@ type ReceiptFunctions
         let parsedReceipt: Receipt.Parsed =
           { Id = newReceipt.Id
             UserId = newReceipt.UserId
-            Date = newReceipt.Date
+            Date = parseResult.Date
             FileName = newReceipt.FileName
             Items = parseResult.Items
             Fees = parseResult.Fees }
