@@ -2,6 +2,7 @@ namespace Bolero.Web
 
 open System
 open Bolero.Web.Models
+open Domain
 
 [<RequireQualifiedAccess>]
 module ViewModel =
@@ -52,14 +53,16 @@ module ViewModel =
     let from (receipt: Receipt.Parsed) (people: Person list) (shares: Map<ItemId * string, int>) =
       let mapItem =
         fun (item: Receipt.Item) ->
+          let itemId = Guid.NewGuid() |> string |> ItemId
+
           let totalShares =
             people
-            |> List.sumBy (fun p -> shares.TryFind(item.Id, p.Id) |> Option.defaultValue 0)
+            |> List.sumBy (fun p -> shares.TryFind(itemId, p.Id) |> Option.defaultValue 0)
 
           let values =
             people
             |> List.map (fun p ->
-              let share = shares.TryFind(item.Id, p.Id) |> Option.defaultValue 0
+              let share = shares.TryFind(itemId, p.Id) |> Option.defaultValue 0
 
               let price =
                 if totalShares = 0 then
@@ -71,7 +74,7 @@ module ViewModel =
                 Share = share
                 Price = price })
 
-          { Id = item.Id
+          { Id = itemId
             Name = item.Name
             Values = values
             TotalAmount = item.Amount
@@ -99,6 +102,8 @@ module ViewModel =
       let feeRows =
         receipt.Fees
         |> List.map (fun fee ->
+          let feeId = Guid.NewGuid() |> string |> FeeId
+
           let values =
             people
             |> List.map (fun p ->
@@ -115,7 +120,7 @@ module ViewModel =
                 Share = 0
                 Price = feePrice })
 
-          { Id = fee.Id
+          { Id = feeId
             Type = fee.Type
             Values = values
             TotalAmount = fee.Amount })
@@ -147,6 +152,8 @@ module ViewModel =
             Share = shareTotal
             Price = itemPriceTotal + feesPriceTotal })
 
+      let totalFeesAmount = receipt.Fees |> List.sumBy _.Amount
+
       { People = people
         Items = itemRows
         ItemsSubtotal =
@@ -155,14 +162,12 @@ module ViewModel =
         Fees = feeRows
         FeesSubtotal =
           { Values = feesSubtotalValues
-            TotalAmount = receipt.Fees |> List.sumBy _.Amount }
+            TotalAmount = totalFeesAmount }
         Total =
           { Values = totalValues
-            TotalAmount = receipt.Total } }
+            TotalAmount = totalItemsAmount + totalFeesAmount } }
 
     let private recalculate (state: State) =
-      let totalItemsAmount = state.ItemsSubtotal.TotalAmount
-
       let itemRows =
         state.Items
         |> List.map (fun row ->
@@ -198,6 +203,8 @@ module ViewModel =
             Share = shareTotal
             Price = priceTotal })
 
+      let itemsSubtotalTotalAmount = itemRows |> List.sumBy _.TotalAmount
+
       let feeRows =
         state.Fees
         |> List.map (fun fee ->
@@ -208,10 +215,10 @@ module ViewModel =
                 (itemsSubtotalValues |> List.find (fun v -> v.PersonId = p.Id)).Price
 
               let feePrice =
-                if totalItemsAmount = 0.0M then
+                if itemsSubtotalTotalAmount = 0.0M then
                   0.0M
                 else
-                  (itemPriceTotal / totalItemsAmount) * fee.TotalAmount
+                  (itemPriceTotal / itemsSubtotalTotalAmount) * fee.TotalAmount
 
               { PersonId = p.Id
                 Share = 0
@@ -229,6 +236,8 @@ module ViewModel =
           { PersonId = p.Id
             Share = 0
             Price = priceTotal })
+
+      let feesSubtotalTotalAmount = feeRows |> List.sumBy _.TotalAmount
 
       let totalValues =
         state.People
@@ -248,10 +257,16 @@ module ViewModel =
 
       { state with
           Items = itemRows
-          ItemsSubtotal.Values = itemsSubtotalValues
+          ItemsSubtotal =
+            { Values = itemsSubtotalValues
+              TotalAmount = itemsSubtotalTotalAmount }
           Fees = feeRows
-          FeesSubtotal.Values = feesSubtotalValues
-          Total.Values = totalValues }
+          FeesSubtotal =
+            { Values = feesSubtotalValues
+              TotalAmount = feesSubtotalTotalAmount }
+          Total =
+            { Values = totalValues
+              TotalAmount = itemsSubtotalTotalAmount + feesSubtotalTotalAmount } }
 
     let updateShare (itemId: ItemId) (personId: string) (share: int) (state: State) =
       let newItems =

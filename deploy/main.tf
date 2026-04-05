@@ -50,10 +50,11 @@ resource "azurerm_log_analytics_workspace" "appi-ws-splittie" {
 
 # Identity
 
-resource "azurerm_user_assigned_identity" "ado-pipeline-identity" {
+resource "azurerm_user_assigned_identity" "id-ado-pipeline-identity" {
   location            = azurerm_resource_group.rg-splittie.location
-  name                = "ado-pipeline-identity-splittie-${var.env}"
   resource_group_name = azurerm_resource_group.rg-splittie.name
+
+  name = "id-ado-splittie-${var.env}"
 }
 
 resource "azurerm_storage_account" "st-splittie" {
@@ -67,13 +68,20 @@ resource "azurerm_storage_account" "st-splittie" {
   tags = local.tags
 }
 
-resource "azurerm_role_assignment" "ado-pipeline-identity-blob-access" {
-  scope                = azurerm_storage_account.st-splittie.id
-  principal_id         = azurerm_user_assigned_identity.ado-pipeline-identity.principal_id
+resource "azurerm_role_assignment" "ra-id-ado-pipeline-identity-blob-access" {
+  scope        = azurerm_storage_account.st-splittie.id
+  principal_id = azurerm_user_assigned_identity.id-ado-pipeline-identity.principal_id
+
   role_definition_name = "Storage Blob Data Contributor"
 }
 
 resource "azurerm_storage_container" "stc-splittie-input" {
+  storage_account_id = azurerm_storage_account.st-splittie.id
+
+  name = "input"
+}
+
+resource "azurerm_storage_queue" "stq-splittie-input" {
   storage_account_id = azurerm_storage_account.st-splittie.id
 
   name = "input"
@@ -114,6 +122,11 @@ resource "azurerm_linux_function_app" "func-splittie" {
       dotnet_version              = "9.0"
       use_dotnet_isolated_runtime = true
     }
+  }
+
+  app_settings = {
+    "OpenAI__Endpoint" = azurerm_cognitive_account.ca-splittie.endpoint
+    "OpenAI__Model" = azurerm_cognitive_deployment.openai_model.name
   }
 
   tags = local.tags

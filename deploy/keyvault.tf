@@ -63,8 +63,16 @@ resource "azurerm_key_vault_secret" "kvs-openai-key" {
 
 resource "azurerm_key_vault_secret" "kvs-database-connection-string" {
   key_vault_id = azurerm_key_vault.kv-splittie.id
-  name         = "Database--ConnectionString"
+  name         = "ConnectionStrings--Database"
   value        = var.database-connection-string
+
+  depends_on = [azurerm_key_vault_access_policy.kvap-terraform]
+}
+
+resource "azurerm_key_vault_secret" "kvs-storage-connection-string" {
+  key_vault_id = azurerm_key_vault.kv-splittie.id
+  name         = "ConnectionStrings--Storage"
+  value        = azurerm_storage_account.st-splittie.primary_connection_string
 
   depends_on = [azurerm_key_vault_access_policy.kvap-terraform]
 }

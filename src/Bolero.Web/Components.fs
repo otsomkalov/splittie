@@ -8,11 +8,9 @@ open Elmish
 open Microsoft.AspNetCore.Authorization
 open Microsoft.AspNetCore.Components
 open Microsoft.AspNetCore.Components.Authorization
-open Microsoft.AspNetCore.Components.Forms
 open Microsoft.AspNetCore.Components.Routing
 open Microsoft.AspNetCore.Components.Web
 open Microsoft.AspNetCore.Components.WebAssembly.Authentication
-open Microsoft.Extensions.Logging
 
 [<Route("")>]
 type Home() =

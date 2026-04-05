@@ -5,6 +5,8 @@ open Bolero.Html
 open Bolero.Web.Models
 open Bolero.Web.Repos
 open Bolero.Web.Shared
+open Bolero.Web.Util
+open Domain
 open Elmish
 
 type PersonId =
@@ -214,12 +216,12 @@ module Receipt =
     module Receipt =
       type Message =
         | Load of string
-        | Loaded of Receipt
+        | Loaded of AsyncOp<Receipt option>
 
       let update (env: #IGetReceipt) wrap msg model =
         match msg with
-        | Load receiptId -> model, Cmd.OfTask.perform env.GetReceipt receiptId (Loaded >> wrap)
-        | Loaded(Parsed receipt) ->
+        | Load receiptId -> model, Cmd.OfTask.perform env.GetReceipt receiptId (Finished >> Loaded >> wrap)
+        | Loaded(Finished(Some(Receipt.Parsed receipt))) ->
           let people =
             model.People
             |> List.map (fun p ->
@@ -227,7 +229,10 @@ module Receipt =
                 ViewModel.ReceiptGridState.Person.Name = p.Name })
 
           let grid = ViewModel.ReceiptGridState.from receipt people Map.empty
+
           { model with Grid = Some grid }, Cmd.none
+        | Loaded(Finished(Some(Receipt.Unparsed _))) -> { model with Grid = None }, Cmd.none
+        | _ -> { model with Grid = None }, Cmd.none
 
     type Message =
       | ToggleEditMode

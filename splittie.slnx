@@ -1,6 +1,11 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Bolero.Web/Bolero.Web.fsproj" />
+    <Project Path="src/Domain/Domain.fsproj" />
+    <Project Path="src/Infra/Infra.fsproj" />
+    <Project Path="src/Parser.OpenAI/Parser.OpenAI.fsproj" />
+    <Project Path="src/Runners.AzureFunctions/Runners.AzureFunctions.fsproj" />
+    <Project Path="src/Shared/Shared.fsproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Bolero.Web.Tests/Bolero.Web.Tests.fsproj" />
