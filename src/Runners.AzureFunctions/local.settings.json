@@ -3,11 +3,11 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-    "KeyVaultName": "kv-splittie-dev",
+    "KeyVaultName": "<Azure Key Vault name>",
     "Image__SupportedMimeTypes__0": "image/jpeg",
     "Storage__Container": "input",
     "Storage__Queue": "input",
-    "Database__Name": "glovo-split",
+    "Database__Name": "<MongoDB database name>",
     "OpenAI__Endpoint": "<Azure OpenAI endpoint>",
     "OpenAI__Model": "<Azure OpenAI model>"
   },
