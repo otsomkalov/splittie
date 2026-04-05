@@ -216,12 +216,12 @@ module Receipt =
     module Receipt =
       type Message =
         | Load of string
-        | Loaded of AsyncOp<Receipt option>
+        | Receipt of AsyncOp<Receipt option>
 
       let update (env: #IGetReceipt) wrap msg model =
         match msg with
-        | Load receiptId -> model, Cmd.OfTask.perform env.GetReceipt receiptId (Finished >> Loaded >> wrap)
-        | Loaded(Finished(Some(Receipt.Parsed receipt))) ->
+        | Load receiptId -> model, Cmd.OfTask.perform env.GetReceipt receiptId (Finished >> Receipt >> wrap)
+        | Receipt(Finished(Some(Receipt.Parsed receipt))) ->
           let people =
             model.People
             |> List.map (fun p ->
@@ -231,7 +231,7 @@ module Receipt =
           let grid = ViewModel.ReceiptGridState.from receipt people Map.empty
 
           { model with Grid = Some grid }, Cmd.none
-        | Loaded(Finished(Some(Receipt.Unparsed _))) -> { model with Grid = None }, Cmd.none
+        | Receipt(Finished(Some(Receipt.Unparsed _))) -> { model with Grid = None }, Cmd.none
         | _ -> { model with Grid = None }, Cmd.none
 
     type Message =
