@@ -67,11 +67,6 @@ let private configureServices (builder: FunctionsApplicationBuilder) =
 
   services.Configure<ImageSettings>(cfg.GetRequiredSection ImageSettings.SectionName)
 
-  services
-    .AddMvcCore()
-    .AddJsonOptions(fun opts ->
-      JSON.FsharpOptions.AddToJsonSerializerOptions opts.JsonSerializerOptions)
-
   builder
 
 let builder =
