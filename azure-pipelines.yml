@@ -106,6 +106,7 @@ stages:
     jobs:
       - deployment: deploy_bolero
         displayName: 'Deploy Bolero Web'
+        environment: 'dev'
         strategy:
           runOnce:
             deploy:
