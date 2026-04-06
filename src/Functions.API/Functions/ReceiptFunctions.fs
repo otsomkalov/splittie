@@ -1,4 +1,4 @@
-﻿namespace Runners.AzureFunctions.Functions
+﻿namespace Functions.API.Functions
 
 open System.Threading.Tasks
 open Azure.Storage.Blobs
@@ -14,7 +14,7 @@ open Microsoft.AspNetCore.Mvc
 open Microsoft.Azure.Functions.Worker
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Options
-open Runners.AzureFunctions.Shared
+open Functions.API.Shared
 
 type ReceiptFunctions
   (

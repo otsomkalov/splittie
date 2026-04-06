@@ -3,7 +3,7 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-    "KeyVaultName": "<Azure Key Vault name>",
+    "KeyVaultName": "kv-splittie-dev",
     "Image__SupportedMimeTypes__0": "image/jpeg",
     "Storage__Container": "input",
     "Storage__Queue": "input",

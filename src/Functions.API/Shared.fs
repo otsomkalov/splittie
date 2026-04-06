@@ -1,4 +1,4 @@
-﻿module Runners.AzureFunctions.Shared
+﻿module Functions.API.Shared
 
 open System.Threading.Tasks
 open Domain

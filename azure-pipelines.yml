@@ -48,13 +48,19 @@ stages:
             displayName: 'Restore packages'
             inputs:
               command: 'restore'
-              projects: 'src/**/**.fsproj'
           - task: DotNetCoreCLI@2
             displayName: 'Build Bolero Web'
             inputs:
               command: 'build'
               projects: 'src/**/Bolero.Web.fsproj'
               arguments: '--configuration $(BuildConfiguration)'
+              publishWebProjects: false
+          - task: DotNetCoreCLI@2
+            displayName: 'Build Azure Functions Web API'
+            inputs:
+              command: 'build'
+              projects: 'src/**/Functions.API.fsproj'
+              arguments: '-r $(Runtime) --configuration $(BuildConfiguration)'
               publishWebProjects: false
           - task: DotNetCoreCLI@2
             displayName: 'Run all tests'
@@ -67,13 +73,25 @@ stages:
             inputs:
               summaryFileLocation: '$(Agent.TempDirectory)/*/coverage.cobertura.xml'
           - task: DotNetCoreCLI@2
+            displayName: 'Publish Azure Functions Web API'
+            inputs:
+              command: 'publish'
+              projects: 'src/**/Functions.API.fsproj'
+              arguments: '-r $(Runtime) -o $(Build.ArtifactStagingDirectory)/Functions.API /p:InformationalVersion=$(Build.BuildNumber)'
+              publishWebProjects: false
+          - task: DotNetCoreCLI@2
             displayName: 'Publish Bolero Web'
             inputs:
               command: 'publish'
               projects: 'src/**/Bolero.Web.fsproj'
-              arguments: '-r $(Runtime) -o $(Build.ArtifactStagingDirectory) /p:InformationalVersion=$(Build.BuildNumber)'
+              arguments: '-r $(Runtime) -o $(Build.ArtifactStagingDirectory)/Bolero.Web /p:InformationalVersion=$(Build.BuildNumber)'
               publishWebProjects: false
               zipAfterPublish: false
+          - task: PublishBuildArtifacts@1
+            displayName: 'Pack Azure Functions Web API'
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)/Functions.API'
+              ArtifactName: 'Functions.API'
           - task: PublishBuildArtifacts@1
             displayName: 'Pack Bolero Web'
             inputs:
@@ -86,7 +104,7 @@ stages:
     variables:
       - group: dev
     jobs:
-      - job: deploy_web
+      - deployment: deploy_bolero
         displayName: 'Deploy Bolero Web'
         steps:
           - checkout: none
@@ -109,33 +127,20 @@ stages:
                   -s $(Build.ArtifactStagingDirectory)/Bolero.Web/ \
                   --overwrite \
                   --no-progress
-  - stage: deploy_prd
-    displayName: 'Deploy PRD'
-    dependsOn: deploy_dev
-    condition: succeeded('deploy_dev')
-    variables:
-      - group: prd
-    jobs:
-      - job: deploy_web
-        displayName: 'Deploy Bolero Web'
-        steps:
-          - checkout: none
-          - task: DownloadPipelineArtifact@2
-            inputs:
-              buildType: 'current'
-              artifactName: 'Bolero.Web'
-              targetPath: '$(Build.ArtifactStagingDirectory)/Bolero.Web'
-          - task: AzureCLI@2
-            displayName: 'Copy Bolero Web to Blob Storage'
-            inputs:
-              azureSubscription: '$(subscription)'
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                az storage blob upload-batch \
-                  --auth-mode login \
-                  --account-name $(web-storage-account) \
-                  -d '$web' \
-                  -s $(Build.ArtifactStagingDirectory)/Bolero.Web/ \
-                  --overwrite \
-                  --no-progress
+      - deployment: deploy_api
+        displayName: 'Deploy Azure Functions Web API'
+        environment: 'dev'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: Functions.API
+
+                - task: AzureFunctionApp@2
+                  inputs:
+                    azureSubscription: '$(subscription)'
+                    appType: 'functionAppLinux'
+                    appName: '$(api-functions-name)'
+                    package: '$(Pipeline.Workspace)/**/*.zip'
+                    isFlexConsumption: true

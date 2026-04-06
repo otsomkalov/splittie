@@ -1,4 +1,4 @@
-module Runners.AzureFunctions.Startup
+module Functions.API.Startup
 
 #nowarn "20"
 
