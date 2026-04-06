@@ -84,7 +84,7 @@ stages:
             inputs:
               command: 'publish'
               projects: 'src/**/Bolero.Web.fsproj'
-              arguments: '-r $(Runtime) -o $(Build.ArtifactStagingDirectory)/Bolero.Web /p:InformationalVersion=$(Build.BuildNumber)'
+              arguments: '-r $(Runtime) -o $(Build.ArtifactStagingDirectory) /p:InformationalVersion=$(Build.BuildNumber)'
               publishWebProjects: false
               zipAfterPublish: false
           - task: PublishBuildArtifacts@1
