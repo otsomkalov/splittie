@@ -106,27 +106,28 @@ stages:
     jobs:
       - deployment: deploy_bolero
         displayName: 'Deploy Bolero Web'
-        steps:
-          - checkout: none
-          - task: DownloadPipelineArtifact@2
-            inputs:
-              buildType: 'current'
-              artifactName: 'Bolero.Web'
-              targetPath: '$(Build.ArtifactStagingDirectory)/Bolero.Web'
-          - task: AzureCLI@2
-            displayName: 'Copy Bolero Web to Blob Storage'
-            inputs:
-              azureSubscription: '$(subscription)'
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                az storage blob upload-batch \
-                  --auth-mode login \
-                  --account-name $(web-storage-account) \
-                  -d '$web' \
-                  -s $(Build.ArtifactStagingDirectory)/Bolero.Web/ \
-                  --overwrite \
-                  --no-progress
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: DownloadPipelineArtifact@2
+                  inputs:
+                    buildType: 'current'
+                    artifactName: Bolero.Web
+                - task: AzureCLI@2
+                  displayName: 'Copy Bolero Web to Blob Storage'
+                  inputs:
+                    azureSubscription: '$(subscription)'
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az storage blob upload-batch \
+                        --auth-mode login \
+                        --account-name $(web-storage-account) \
+                        -d '$web' \
+                        -s $(Build.ArtifactStagingDirectory)/Bolero.Web/ \
+                        --overwrite \
+                        --no-progress
       - deployment: deploy_api
         displayName: 'Deploy Azure Functions Web API'
         environment: 'dev'
