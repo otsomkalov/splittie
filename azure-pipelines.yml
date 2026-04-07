@@ -111,10 +111,8 @@ stages:
           runOnce:
             deploy:
               steps:
-                - task: DownloadPipelineArtifact@2
-                  inputs:
-                    buildType: 'current'
-                    artifactName: Bolero.Web
+                - download: current
+                  artifact: Bolero.Web
                 - task: AzureCLI@2
                   displayName: 'Copy Bolero Web to Blob Storage'
                   inputs:
@@ -126,7 +124,7 @@ stages:
                         --auth-mode login \
                         --account-name $(web-storage-account) \
                         -d '$web' \
-                        -s $(Build.ArtifactStagingDirectory)/Bolero.Web/ \
+                        -s $(Pipeline.Workspace)/Bolero.Web/ \
                         --overwrite \
                         --no-progress
       - deployment: deploy_api
@@ -144,5 +142,4 @@ stages:
                     azureSubscription: '$(subscription)'
                     appType: 'functionAppLinux'
                     appName: '$(api-functions-name)'
-                    package: '$(Pipeline.Workspace)/**/*.zip'
-                    isFlexConsumption: true
+                    package: '$(Pipeline.Workspace)/Functions.API.zip'
