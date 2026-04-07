@@ -143,3 +143,4 @@ stages:
                     appType: 'functionAppLinux'
                     appName: '$(api-functions-name)'
                     package: '$(Pipeline.Workspace)/Functions.API/Functions.API.zip'
+                    isFlexConsumption: true

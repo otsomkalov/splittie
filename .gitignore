@@ -339,7 +339,7 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 
-**/appsettings.Development.json
+**/appsettings.*.json
 
 # Local .terraform directories
 **/.terraform/*

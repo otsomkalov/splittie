@@ -5,9 +5,9 @@
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
     "KeyVaultName": "kv-splittie-dev",
     "Image__SupportedMimeTypes__0": "image/jpeg",
-    "Storage__Container": "input",
-    "Storage__Queue": "input",
-    "Database__Name": "<MongoDB database name>",
+    "Storage__Container": "receipts",
+    "Storage__Queue": "receipts",
+    "Database__Name": "splittie",
     "OpenAI__Endpoint": "<Azure OpenAI endpoint>",
     "OpenAI__Model": "<Azure OpenAI model>"
   },
