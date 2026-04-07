@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">=4.57.0"
+      version = ">=4.67.0"
     }
   }
 }
@@ -75,16 +75,22 @@ resource "azurerm_role_assignment" "ra-id-ado-pipeline-identity-blob-access" {
   role_definition_name = "Storage Blob Data Contributor"
 }
 
-resource "azurerm_storage_container" "stc-splittie-input" {
+resource "azurerm_storage_container" "stc-splittie-receipts" {
   storage_account_id = azurerm_storage_account.st-splittie.id
 
-  name = "input"
+  name = "receipts"
 }
 
-resource "azurerm_storage_queue" "stq-splittie-input" {
+resource "azurerm_storage_container" "stc-func-api-deployments" {
   storage_account_id = azurerm_storage_account.st-splittie.id
 
-  name = "input"
+  name = "func-api-deployments"
+}
+
+resource "azurerm_storage_queue" "stq-splittie-receipts" {
+  storage_account_id = azurerm_storage_account.st-splittie.id
+
+  name = "receipts"
 }
 
 resource "azurerm_service_plan" "asp-splittie" {
@@ -93,40 +99,49 @@ resource "azurerm_service_plan" "asp-splittie" {
 
   name     = "asp-splittie-${var.env}"
   os_type  = "Linux"
-  sku_name = "Y1"
+  sku_name = "FC1"
 
   tags = local.tags
 }
 
-resource "azurerm_linux_function_app" "func-splittie" {
+resource "azurerm_function_app_flex_consumption" "func-splittie" {
   resource_group_name = azurerm_resource_group.rg-splittie.name
   location            = azurerm_resource_group.rg-splittie.location
 
-  storage_account_name       = azurerm_storage_account.st-splittie.name
-  storage_account_access_key = azurerm_storage_account.st-splittie.primary_access_key
-  service_plan_id            = azurerm_service_plan.asp-splittie.id
+  service_plan_id = azurerm_service_plan.asp-splittie.id
 
-  name = "func-splittie-${var.env}"
+  name = "func-splittie-api-${var.env}"
 
-  functions_extension_version = "~4"
+  runtime_name    = "dotnet-isolated"
+  runtime_version = "10.0"
+
+  storage_authentication_type = "StorageAccountConnectionString"
+  storage_access_key          = azurerm_storage_account.st-splittie.primary_access_key
+  storage_container_endpoint  = "${azurerm_storage_account.st-splittie.primary_blob_endpoint}${azurerm_storage_container.stc-func-api-deployments.name}"
+  storage_container_type      = "blobContainer"
+
+  instance_memory_in_mb  = 512
+  maximum_instance_count = 10
 
   identity {
     type = "SystemAssigned"
   }
 
   site_config {
-    application_insights_key = azurerm_application_insights.appi-splittie.instrumentation_key
-    app_scale_limit          = 10
-
-    application_stack {
-      dotnet_version              = "9.0"
-      use_dotnet_isolated_runtime = true
-    }
+    application_insights_connection_string = azurerm_application_insights.appi-splittie.connection_string
   }
 
   app_settings = {
-    "OpenAI__Endpoint" = azurerm_cognitive_account.ca-splittie.endpoint
-    "OpenAI__Model" = azurerm_cognitive_deployment.openai_model.name
+    KeyValueName = azurerm_key_vault.kv-splittie.name
+
+    Authentication__Schemes__Bearer__Authority     = var.jwt-authority
+    Authentication__Schemes__Bearer__ValidAudience = var.jwt-audience
+    Authentication__Schemes__Bearer__ValidIssuer   = var.jwt-issuer
+
+    Image__SupportedMimeTypes__0 = "image/jpeg"
+
+    OpenAI__Endpoint = azurerm_cognitive_account.ca-splittie.endpoint
+    OpenAI__Model    = azurerm_cognitive_deployment.openai_model.name
   }
 
   tags = local.tags

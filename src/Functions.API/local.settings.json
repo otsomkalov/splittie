@@ -3,11 +3,21 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-    "KeyVaultName": "kv-splittie-dev",
+
+    "KeyVaultName": "<Azure KeyVault name>",
+
     "Image__SupportedMimeTypes__0": "image/jpeg",
+
+    "Authentication__DefaultScheme": "Bearer",
+    "Authentication__Schemes__Bearer__Authority": "<Authority>",
+    "Authentication__Schemes__Bearer__ValidAudience": "<ValidAudience>",
+    "Authentication__Schemes__Bearer__ValidIssuer": "<ValidIssuer>",
+
     "Storage__Container": "receipts",
     "Storage__Queue": "receipts",
+
     "Database__Name": "splittie",
+
     "OpenAI__Endpoint": "<Azure OpenAI endpoint>",
     "OpenAI__Model": "<Azure OpenAI model>"
   },

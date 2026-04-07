@@ -29,30 +29,6 @@ resource "azurerm_key_vault_access_policy" "kvap-terraform" {
   ]
 }
 
-resource "azurerm_key_vault_secret" "kvs-authentication-authority" {
-  key_vault_id = azurerm_key_vault.kv-splittie.id
-  name         = "Authentication--Schemes--Bearer--Authority"
-  value        = var.jwt-authority
-
-  depends_on = [azurerm_key_vault_access_policy.kvap-terraform]
-}
-
-resource "azurerm_key_vault_secret" "kvs-authentication-audience" {
-  key_vault_id = azurerm_key_vault.kv-splittie.id
-  name         = "Authentication--Schemes--Bearer--ValidAudience"
-  value        = var.jwt-audience
-
-  depends_on = [azurerm_key_vault_access_policy.kvap-terraform]
-}
-
-resource "azurerm_key_vault_secret" "kvs-authentication-issuer" {
-  key_vault_id = azurerm_key_vault.kv-splittie.id
-  name         = "Authentication--Schemes--Bearer--ValidIssuer"
-  value        = var.jwt-issuer
-
-  depends_on = [azurerm_key_vault_access_policy.kvap-terraform]
-}
-
 resource "azurerm_key_vault_secret" "kvs-openai-key" {
   key_vault_id = azurerm_key_vault.kv-splittie.id
   name         = "OpenAI--Key"
@@ -79,8 +55,8 @@ resource "azurerm_key_vault_secret" "kvs-storage-connection-string" {
 
 resource "azurerm_key_vault_access_policy" "kvap-func" {
   key_vault_id = azurerm_key_vault.kv-splittie.id
-  tenant_id    = azurerm_linux_function_app.func-splittie.identity[0].tenant_id
-  object_id    = azurerm_linux_function_app.func-splittie.identity[0].principal_id
+  tenant_id    = azurerm_function_app_flex_consumption.func-splittie.identity[0].tenant_id
+  object_id    = azurerm_function_app_flex_consumption.func-splittie.identity[0].principal_id
 
   secret_permissions = [
     "Get",
