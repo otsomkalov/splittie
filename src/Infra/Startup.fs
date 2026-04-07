@@ -14,7 +14,7 @@ open MongoDB.Driver
 open otsom.fs.Extensions.DependencyInjection
 
 let private configureMongoClient (cfg: IConfiguration) =
-  new MongoClient(cfg.GetConnectionString "Database") :> IMongoClient
+  new MongoClient(cfg.GetConnectionString DatabaseSettings.SectionName) :> IMongoClient
 
 let private configureMongoDatabase (options: IOptions<DatabaseSettings>) (mongoClient: IMongoClient) =
   let settings = options.Value

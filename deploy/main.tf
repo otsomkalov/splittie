@@ -132,7 +132,7 @@ resource "azurerm_function_app_flex_consumption" "func-splittie" {
   }
 
   app_settings = {
-    KeyValueName = azurerm_key_vault.kv-splittie.name
+    KeyVaultName = azurerm_key_vault.kv-splittie.name
 
     Authentication__Schemes__Bearer__Authority     = var.jwt-authority
     Authentication__Schemes__Bearer__ValidAudience = var.jwt-audience

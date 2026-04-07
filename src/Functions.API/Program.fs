@@ -25,11 +25,6 @@ module KeyVault =
   [<Literal>]
   let KeyVaultName = "KeyVaultName"
 
-[<RequireQualifiedAccess>]
-module AzureSettings =
-  [<Literal>]
-  let KeyVault = "Azure:KeyVault"
-
 let configureAppConfiguration (builder: FunctionsApplicationBuilder) =
   builder.Configuration.AddAzureKeyVault(
     Uri($"https://{builder.Configuration[KeyVault.KeyVaultName]}.vault.azure.net/"),
@@ -66,6 +61,8 @@ let private configureServices (builder: FunctionsApplicationBuilder) =
   services |> Startup.addInfra cfg |> Startup.addOpenAIParser cfg
 
   services.Configure<ImageSettings>(cfg.GetRequiredSection ImageSettings.SectionName)
+
+  services.AddMvcCore().AddJsonOptions(fun opts -> JSON.FsharpOptions.AddToJsonSerializerOptions opts.JsonSerializerOptions)
 
   builder
 

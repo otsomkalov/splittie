@@ -2,7 +2,6 @@
 
 [<CLIMutable>]
 type DatabaseSettings =
-  { ConnectionString: string
-    Name: string }
+  { Name: string }
 
   static member SectionName = "Database"
