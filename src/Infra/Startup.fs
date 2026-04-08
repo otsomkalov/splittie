@@ -6,6 +6,7 @@ module Infra.Startup
 open Azure.Storage.Blobs
 open Azure.Storage.Queues
 open Domain.Repos
+open Domain.Settings
 open Infra.Settings
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
@@ -29,7 +30,7 @@ let private configureQueueClient (cfg: IConfiguration) =
 
 let addInfra (cfg: IConfiguration) (services: IServiceCollection) =
   services.Configure<DatabaseSettings>(cfg.GetRequiredSection DatabaseSettings.SectionName)
-  services.Configure<Domain.Settings.StorageSettings>(cfg.GetRequiredSection Domain.Settings.StorageSettings.SectionName)
+  services.Configure<StorageSettings>(cfg.GetRequiredSection StorageSettings.SectionName)
 
   services.BuildSingleton<IMongoClient, IConfiguration>(configureMongoClient)
   services.BuildSingleton<IMongoDatabase, IOptions<DatabaseSettings>, IMongoClient>(configureMongoDatabase)

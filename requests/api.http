@@ -1,11 +1,13 @@
 ﻿###
-GET {{url}}receipts/13323af8-3cec-4a28-b249-e1af6ef79e51
+GET {{url}}receipts/a70c47ba-7280-4c22-ad6e-b8d562fc6113
 Authorization: Bearer {{token}}
+x-functions-key: {{key}}
 
 ###
 POST {{url}}receipts
 Authorization: Bearer {{token}}
 Content-Type: multipart/form-data; boundary=WebAppBoundary
+x-functions-key: {{key}}
 
 --WebAppBoundary
 Content-Disposition: form-data; name="receipt"; filename="file.jpg"

@@ -17,7 +17,7 @@ let private buildChatClient (serviceProvider: IServiceProvider) =
   ChatClient(settings.Model, ApiKeyCredential settings.Key, OpenAIClientOptions(Endpoint = Uri(settings.Endpoint)))
 
 let addOpenAIParser (cfg: IConfiguration) (services: IServiceCollection) =
-  services.Configure<OpenAISettings>(cfg.GetRequiredSection(OpenAISettings.SectionName))
+  services.Configure<OpenAISettings>(cfg.GetRequiredSection OpenAISettings.SectionName)
 
   services.AddSingleton<ChatClient>(buildChatClient)
 
