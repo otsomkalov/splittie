@@ -1,0 +1,146 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - src
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - src
+
+variables:
+  - group: dev
+  - name: Runtime
+    value: 'linux-x64'
+  - name: BuildConfiguration
+    value: 'Release'
+
+stages:
+  - stage: build
+    displayName: 'Build'
+    jobs:
+      - job: build_all
+        steps:
+          - task: UseDotNet@2
+            displayName: 'Use .NET 10'
+            inputs:
+              version: '10.x'
+          - task: DotNetCoreCLI@2
+            displayName: 'Install Fantomas formatter'
+            inputs:
+              command: 'custom'
+              custom: 'tool'
+              arguments: 'install -g fantomas'
+          - task: Bash@3
+            displayName: 'Run Fantomas'
+            inputs:
+              targetType: 'inline'
+              script: |
+                fantomas './src' './tests' --check
+              workingDirectory: '$(Build.SourcesDirectory)'
+          - task: DotNetCoreCLI@2
+            displayName: 'Restore packages'
+            inputs:
+              command: 'restore'
+          - task: DotNetCoreCLI@2
+            displayName: 'Build Bolero Web'
+            inputs:
+              command: 'build'
+              projects: 'src/**/Bolero.Web.fsproj'
+              arguments: '--configuration $(BuildConfiguration)'
+              publishWebProjects: false
+          - task: DotNetCoreCLI@2
+            displayName: 'Build Azure Functions Web API'
+            inputs:
+              command: 'build'
+              projects: 'src/**/Functions.API.fsproj'
+              arguments: '-r $(Runtime) --configuration $(BuildConfiguration)'
+              publishWebProjects: false
+          - task: DotNetCoreCLI@2
+            displayName: 'Run all tests'
+            inputs:
+              command: 'test'
+              projects: 'tests/**/**.fsproj'
+              arguments: '--configuration $(BuildConfiguration) --collect:"XPlat Code Coverage"'
+          - task: PublishCodeCoverageResults@2
+            displayName: 'Publish coverage'
+            inputs:
+              summaryFileLocation: '$(Agent.TempDirectory)/*/coverage.cobertura.xml'
+          - task: DotNetCoreCLI@2
+            displayName: 'Publish Azure Functions Web API'
+            inputs:
+              command: 'publish'
+              projects: 'src/**/Functions.API.fsproj'
+              arguments: '-r $(Runtime) -o $(Build.ArtifactStagingDirectory)/Functions.API /p:InformationalVersion=$(Build.BuildNumber)'
+              publishWebProjects: false
+          - task: DotNetCoreCLI@2
+            displayName: 'Publish Bolero Web'
+            inputs:
+              command: 'publish'
+              projects: 'src/**/Bolero.Web.fsproj'
+              arguments: '-r $(Runtime) -o $(Build.ArtifactStagingDirectory) /p:InformationalVersion=$(Build.BuildNumber)'
+              publishWebProjects: false
+              zipAfterPublish: false
+          - task: PublishBuildArtifacts@1
+            displayName: 'Pack Azure Functions Web API'
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)/Functions.API'
+              ArtifactName: 'Functions.API'
+          - task: PublishBuildArtifacts@1
+            displayName: 'Pack Bolero Web'
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)/Bolero.Web/wwwroot'
+              ArtifactName: 'Bolero.Web'
+  - stage: deploy_dev
+    displayName: 'Deploy DEV'
+    dependsOn: build
+    condition: succeeded('build')
+    variables:
+      - group: dev
+    jobs:
+      - deployment: deploy_bolero
+        displayName: 'Deploy Bolero Web'
+        environment: 'dev'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: Bolero.Web
+                - task: AzureCLI@2
+                  displayName: 'Copy Bolero Web to Blob Storage'
+                  inputs:
+                    azureSubscription: '$(subscription)'
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az storage blob upload-batch \
+                        --auth-mode login \
+                        --account-name $(web-storage-account) \
+                        -d '$web' \
+                        -s $(Pipeline.Workspace)/Bolero.Web/ \
+                        --overwrite \
+                        --no-progress
+      - deployment: deploy_api
+        displayName: 'Deploy Azure Functions Web API'
+        environment: 'dev'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: Functions.API
+
+                - task: AzureFunctionApp@2
+                  inputs:
+                    azureSubscription: '$(subscription)'
+                    appType: 'functionAppLinux'
+                    appName: '$(api-functions-name)'
+                    package: '$(Pipeline.Workspace)/Functions.API/Functions.API.zip'
+                    isFlexConsumption: true
