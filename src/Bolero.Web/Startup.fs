@@ -5,6 +5,7 @@ module Bolero.Web.Startup
 open System
 open System.Net
 open System.Net.Http
+open System.Net.Http.Headers
 open System.Net.Http.Json
 open Domain
 open Microsoft.AspNetCore.Components
@@ -16,14 +17,20 @@ open Microsoft.Extensions.Configuration
 open Bolero.Web.Repos
 open Shared
 
+[<CLIMutable>]
+type UploadReceiptResponse = { Id: string }
+
 type Env(httpClientFactory: IHttpClientFactory, logger: ILogger<Env>) =
-  let maxFileSize = 1L * 1_024L * 1_024L // 1 MB
+  let maxFileSize = 2L * 1_024L * 1_024L // 2 MB
   let client = httpClientFactory.CreateClient(nameof Env)
+
+  [<Literal>]
+  let receiptsRoute = "receipts"
 
   interface IEnv with
     member this.GetReceipt(receiptId) = task {
       try
-        let! result = client.GetFromJsonAsync<Receipt>(sprintf "receipts/%s" receiptId, JSON.SerializerOptions)
+        let! result = client.GetFromJsonAsync<Receipt>($"{receiptsRoute}/{receiptId}", JSON.SerializerOptions)
 
         return Some result
       with
@@ -32,6 +39,24 @@ type Env(httpClientFactory: IHttpClientFactory, logger: ILogger<Env>) =
         logger.LogError(e, "Error during getting receipt")
 
         return None
+    }
+
+    member this.UploadReceipt(receiptImage) = task {
+      use formData = new MultipartFormDataContent()
+      use fileStream = receiptImage.OpenReadStream(maxFileSize)
+      use streamContent = new StreamContent(fileStream)
+
+      streamContent.Headers.ContentType <- MediaTypeHeaderValue.Parse receiptImage.ContentType
+
+      formData.Add(streamContent, "receipt", receiptImage.Name)
+
+      let! result = client.PostAsync(receiptsRoute, formData)
+
+      logger.LogInformation("Receipt uploaded successfully, {Status}", result.StatusCode)
+
+      let! response = result.Content.ReadFromJsonAsync<UploadReceiptResponse>(JSON.SerializerOptions)
+
+      return ReceiptId(response.Id)
     }
 
 type APIAuthorizationMessageHandler(accessTokenProvider: IAccessTokenProvider, navigationManager: NavigationManager, cfg: IConfiguration) =

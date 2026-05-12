@@ -32,6 +32,7 @@ resource "azurerm_resource_group" "rg-splittie" {
 resource "azurerm_application_insights" "appi-splittie" {
   resource_group_name = azurerm_resource_group.rg-splittie.name
   location            = azurerm_resource_group.rg-splittie.location
+  workspace_id = azurerm_log_analytics_workspace.appi-ws-splittie.id
 
   name             = "appi-splittie-${var.env}"
   application_type = "web"
@@ -50,11 +51,16 @@ resource "azurerm_log_analytics_workspace" "appi-ws-splittie" {
 
 # Identity
 
-resource "azurerm_user_assigned_identity" "id-ado-pipeline-identity" {
+resource "azurerm_user_assigned_identity" "ui-ado-pipeline" {
   location            = azurerm_resource_group.rg-splittie.location
+  name                = "ui-ado-pipeline-splittie-${var.env}"
   resource_group_name = azurerm_resource_group.rg-splittie.name
+}
 
-  name = "id-ado-splittie-${var.env}"
+resource "azurerm_role_assignment" "ra-ui-ado-pipeline-blob-access" {
+  scope                = azurerm_storage_account.st-splittie.id
+  principal_id         = azurerm_user_assigned_identity.ui-ado-pipeline.principal_id
+  role_definition_name = "Storage Blob Data Contributor"
 }
 
 resource "azurerm_storage_account" "st-splittie" {
@@ -66,13 +72,6 @@ resource "azurerm_storage_account" "st-splittie" {
   account_replication_type = "LRS"
 
   tags = local.tags
-}
-
-resource "azurerm_role_assignment" "ra-id-ado-pipeline-identity-blob-access" {
-  scope        = azurerm_storage_account.st-splittie.id
-  principal_id = azurerm_user_assigned_identity.id-ado-pipeline-identity.principal_id
-
-  role_definition_name = "Storage Blob Data Contributor"
 }
 
 resource "azurerm_storage_container" "stc-splittie-receipts" {

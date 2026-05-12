@@ -18,22 +18,26 @@ type Home() =
 
   override this.Render() = div { "Home" }
 
-[<Route("receipts/{receiptId}")>]
-type ReceiptDetails() =
+[<Authorize; Route("receipts/new")>]
+type NewReceipt(env: IEnv, navManager: NavigationManager) =
+  inherit ProgramComponent<Receipt.New.Model, Receipt.New.Message>()
+
+  override this.Program =
+    Program.mkProgram Receipt.New.init (Receipt.New.update navManager env) Receipt.New.view
+    |> Program.withConsoleTrace
+
+[<Authorize; Route("receipts/{receiptId}")>]
+type ReceiptDetails(env: IEnv) =
   inherit ProgramComponent<Receipt.Details.Model, Receipt.Details.Message>()
 
   [<Parameter>]
   member val ReceiptId = Unchecked.defaultof<string> with get, set
 
-  [<Inject>]
-  member val Env = Unchecked.defaultof<IEnv> with get, set
-
   override this.Program =
-    Program.mkProgram (Receipt.Details.init this.ReceiptId) (Receipt.Details.update this.Env) Receipt.Details.view
+    Program.mkProgram (Receipt.Details.init this.ReceiptId) (Receipt.Details.update env) Receipt.Details.view
     |> Program.withConsoleTrace
 
-[<Route("profile")>]
-[<Authorize>]
+[<Authorize; Route("profile")>]
 type Profile() =
   inherit Component()
 
@@ -42,8 +46,7 @@ type Profile() =
     attr.fragmentWith "NotAuthorized" (fun (_: AuthenticationState) -> p { "You are not authorized" })
   }
 
-[<Route("/authentication/{action}")>]
-[<AllowAnonymous>]
+[<AllowAnonymous; Route("/authentication/{action}")>]
 type Authentication() =
   inherit Component()
 
@@ -52,14 +55,11 @@ type Authentication() =
 
   override this.Render() = comp<RemoteAuthenticatorView> { "Action" => this.Action }
 
-type RedirectToLogin() =
+type RedirectToLogin(navManager: NavigationManager) =
   inherit Component()
 
-  [<Inject>]
-  member val NavigationManager = Unchecked.defaultof<NavigationManager> with get, set
-
   override this.OnInitialized() =
-    this.NavigationManager.NavigateToLogin("authentication/login")
+    navManager.NavigateToLogin("authentication/login")
 
     ()
 

@@ -20,10 +20,11 @@ type TokenUser = { UserId: UserId }
 let validateUser (authService: IAuthenticationService) : HttpRequest -> Task<Result<TokenUser, RequestError<_>>> =
   fun req ->
     authService.AuthenticateAsync(req.HttpContext, JwtBearerDefaults.AuthenticationScheme)
-    |> Task.map (Option.someIf _.Succeeded)
-    |> Task.map (Option.bind (_.Principal >> Option.ofObj))
-    |> Task.map (Option.bind (_.Identity >> Option.ofObj))
-    |> Task.map (Option.bind (_.Name >> Option.ofObj))
-    |> TaskOption.map (fun name -> name.Split "|" |> Array.last)
+    |> Task.map (
+      Option.someIf _.Succeeded
+      >> Option.bind (_.Principal >> Option.ofObj)
+      >> Option.bind (_.Identity >> Option.ofObj)
+      >> Option.bind (_.Name >> Option.ofObj)
+    )
     |> TaskOption.map (fun userId -> { UserId = UserId userId })
     |> Task.map (Result.ofOption RequestError.Unauthorized)
