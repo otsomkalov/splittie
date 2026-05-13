@@ -11,7 +11,8 @@ type IGetReceipt =
   abstract GetReceipt: string -> Task<Receipt option>
 
 type IUploadReceipt =
-  abstract UploadReceipt: IBrowserFile -> Task<unit>
+  abstract UploadReceipt: IBrowserFile -> Task<ReceiptId>
 
 type IEnv =
   inherit IGetReceipt
+  inherit IUploadReceipt

@@ -28,9 +28,9 @@ module internal HeaderLinks =
 
       navLink NavLinkMatch.All {
         attr.``class`` "nav-link"
-        attr.href "receipts"
+        attr.href "receipts/new"
 
-        "Receipts"
+        "New Receipt"
       }
     }
   }

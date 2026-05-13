@@ -8,6 +8,8 @@ open Bolero.Web.Shared
 open Bolero.Web.Util
 open Domain
 open Elmish
+open Microsoft.AspNetCore.Components
+open Microsoft.AspNetCore.Components.Forms
 
 type PersonId =
   | PersonId of string
@@ -18,6 +20,46 @@ type Person = { Id: PersonId; Name: string }
 
 [<RequireQualifiedAccess>]
 module Receipt =
+
+  [<RequireQualifiedAccess>]
+  module New =
+    type Model = { File: IBrowserFile option }
+
+    type Message =
+      | FileSelected of IBrowserFile
+      | UploadReceipt
+      | ReceiptUploaded of ReceiptId
+
+    let init = fun _ -> { File = None }, Cmd.none
+
+    let update (navManager: NavigationManager) (env: #IUploadReceipt) msg model =
+      match msg, model with
+      | FileSelected file, _ -> { model with File = Some file }, Cmd.none
+      | UploadReceipt, { File = Some file } -> model, Cmd.OfTask.perform env.UploadReceipt file ReceiptUploaded
+      | ReceiptUploaded id, _ ->
+        navManager.NavigateTo($"/receipts/{id.Value}")
+
+        model, Cmd.none
+      | _ -> model, Cmd.none
+
+    let view (model: Model) dispatch = div {
+      attr.``class`` "d-flex flex-row gap-2"
+
+      comp<InputFile> {
+        attr.``class`` "form-control"
+        attr.accept "image/*"
+
+        attr.callback "OnChange" (fun (e: InputFileChangeEventArgs) -> e.File |> FileSelected |> dispatch)
+      }
+
+      button {
+        attr.``class`` "btn btn-primary"
+        attr.disabled model.File.IsNone
+        on.click (fun _ -> UploadReceipt |> dispatch)
+
+        "Upload"
+      }
+    }
 
   [<RequireQualifiedAccess>]
   module Details =
