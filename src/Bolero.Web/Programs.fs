@@ -115,7 +115,7 @@ module Receipt =
 
         for value in row.Values do
           td {
-            attr.``class`` (if value.Share <> 0 then "table-success" else "")
+            attr.``class`` (getCellClass value.Price)
 
             input {
               attr.``class`` "form-control"
@@ -129,7 +129,7 @@ module Receipt =
           }
 
           td {
-            attr.``class`` (if value.Share <> 0 then "table-success" else "")
+            attr.``class`` (getCellClass value.Price)
 
             sprintf "%.2f" value.Price
           }
@@ -188,10 +188,9 @@ module Receipt =
         }
 
         for value in row.Values do
-          td { "" }
-
           td {
-            attr.``class`` (if value.Price <> 0.0M then "table-success" else "")
+            attr.colspan 2
+            attr.``class`` (getCellClass value.Price)
 
             sprintf "%.2f" value.Price
           }
@@ -316,7 +315,7 @@ module Receipt =
               attr.colspan 2
 
               input {
-                attr.``class`` "form-control d-inline-block w-auto"
+                attr.``class`` "form-control d-inline-block w-full"
                 attr.``type`` "text"
                 attr.value person.Name
 
@@ -353,17 +352,16 @@ module Receipt =
         }
       }
 
-
     let private renderFeesSubtotalRow (row: ViewModel.ReceiptGridState.FeesSubtotalRow) isEditMode =
 
       tr {
         td { strong { "Fees Subtotal" } }
 
         for value in row.Values do
-          td { "" }
-
           td {
-            attr.``class`` (if value.Price <> 0.0M then "table-success" else "")
+            attr.colspan 2
+            attr.``class`` "text-end"
+            attr.``class`` (getCellClass value.Price)
 
             strong { sprintf "%.2f" value.Price }
           }
@@ -379,13 +377,13 @@ module Receipt =
 
       for value in row.Values do
         td {
-          attr.``class`` (if value.Share <> 0 then "table-success" else "")
+          attr.``class`` (getCellClass value.Price)
 
           value.Share |> string
         }
 
         td {
-          attr.``class`` (if value.Price <> 0.0M then "table-success" else "")
+          attr.``class`` (getCellClass value.Price)
 
           strong { sprintf "%.2f" value.Price }
         }
@@ -402,13 +400,13 @@ module Receipt =
 
         for value in row.Values do
           td {
-            attr.``class`` (if value.Share <> 0 then "table-success" else "")
+            attr.``class`` (getCellClass value.Price)
 
             value.Share |> string
           }
 
           td {
-            attr.``class`` (if value.Price <> 0.0M then "table-success" else "")
+            attr.``class`` (getCellClass value.Price)
 
             strong { sprintf "%.2f" value.Price }
           }

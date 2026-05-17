@@ -12,6 +12,7 @@ type ReceiptGridState() =
 
   let receipt: Receipt.Parsed =
     { Id = ReceiptId "receipt1"
+      Store = "Store 1"
       FileName = "receipt1.jpg"
       UserId = Mocks.userId
       Date = System.DateTime.Now
