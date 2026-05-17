@@ -1,6 +1,7 @@
 module Bolero.Web.Programs
 
 open System
+open BlazorBootstrap
 open Bolero.Html
 open Bolero.Web.Models
 open Bolero.Web.Repos
@@ -32,15 +33,17 @@ module Receipt =
 
     let init = fun _ -> { File = None }, Cmd.none
 
-    let update (navManager: NavigationManager) (env: #IUploadReceipt) msg model =
-      match msg, model with
-      | FileSelected file, _ -> { model with File = Some file }, Cmd.none
-      | UploadReceipt, { File = Some file } -> model, Cmd.OfTask.perform env.UploadReceipt file ReceiptUploaded
-      | ReceiptUploaded id, _ ->
-        navManager.NavigateTo($"/receipts/{id.Value}")
+    let update (navManager: NavigationManager) (env: #IUploadReceipt & #IShowNotification) =
+      fun msg model ->
+        match msg, model with
+        | FileSelected file, _ -> { model with File = Some file }, Cmd.none
+        | UploadReceipt, { File = Some file } -> model, Cmd.OfTask.perform env.UploadReceipt file ReceiptUploaded
+        | ReceiptUploaded id, _ ->
+          env.ShowNotification(ToastMessage(ToastType.Success, "Receipt uploaded successfully"))
+          navManager.NavigateTo($"/receipts/{id.Value}")
 
-        model, Cmd.none
-      | _ -> model, Cmd.none
+          model, Cmd.none
+        | _ -> model, Cmd.none
 
     let view (model: Model) dispatch = div {
       attr.``class`` "d-flex flex-row gap-2"
