@@ -60,8 +60,7 @@ type Env(httpClientFactory: IHttpClientFactory, toastService: ToastService, logg
       return ReceiptId(response.Id)
     }
 
-    member this.ShowNotification(toast) =
-      toastService.Notify(toast)
+    member this.ShowNotification(toast) = toastService.Notify(toast)
 
 
 type APIAuthorizationMessageHandler(accessTokenProvider: IAccessTokenProvider, navigationManager: NavigationManager, cfg: IConfiguration) =
