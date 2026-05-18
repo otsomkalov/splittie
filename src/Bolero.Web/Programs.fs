@@ -1,6 +1,7 @@
 module Bolero.Web.Programs
 
 open System
+open BlazorBootstrap
 open Bolero.Html
 open Bolero.Web.Models
 open Bolero.Web.Repos
@@ -32,15 +33,17 @@ module Receipt =
 
     let init = fun _ -> { File = None }, Cmd.none
 
-    let update (navManager: NavigationManager) (env: #IUploadReceipt) msg model =
-      match msg, model with
-      | FileSelected file, _ -> { model with File = Some file }, Cmd.none
-      | UploadReceipt, { File = Some file } -> model, Cmd.OfTask.perform env.UploadReceipt file ReceiptUploaded
-      | ReceiptUploaded id, _ ->
-        navManager.NavigateTo($"/receipts/{id.Value}")
+    let update (navManager: NavigationManager) (env: #IUploadReceipt & #IShowNotification) =
+      fun msg model ->
+        match msg, model with
+        | FileSelected file, _ -> { model with File = Some file }, Cmd.none
+        | UploadReceipt, { File = Some file } -> model, Cmd.OfTask.perform env.UploadReceipt file ReceiptUploaded
+        | ReceiptUploaded id, _ ->
+          env.ShowNotification(ToastMessage(ToastType.Success, "Receipt uploaded successfully"))
+          navManager.NavigateTo($"/receipts/{id.Value}")
 
-        model, Cmd.none
-      | _ -> model, Cmd.none
+          model, Cmd.none
+        | _ -> model, Cmd.none
 
     let view (model: Model) dispatch = div {
       attr.``class`` "d-flex flex-row gap-2"
@@ -115,7 +118,7 @@ module Receipt =
 
         for value in row.Values do
           td {
-            attr.``class`` (if value.Share <> 0 then "table-success" else "")
+            attr.``class`` (getCellClass value.Price)
 
             input {
               attr.``class`` "form-control"
@@ -129,7 +132,7 @@ module Receipt =
           }
 
           td {
-            attr.``class`` (if value.Share <> 0 then "table-success" else "")
+            attr.``class`` (getCellClass value.Price)
 
             sprintf "%.2f" value.Price
           }
@@ -188,10 +191,9 @@ module Receipt =
         }
 
         for value in row.Values do
-          td { "" }
-
           td {
-            attr.``class`` (if value.Price <> 0.0M then "table-success" else "")
+            attr.colspan 2
+            attr.``class`` (getCellClass value.Price)
 
             sprintf "%.2f" value.Price
           }
@@ -316,7 +318,7 @@ module Receipt =
               attr.colspan 2
 
               input {
-                attr.``class`` "form-control d-inline-block w-auto"
+                attr.``class`` "form-control d-inline-block w-full"
                 attr.``type`` "text"
                 attr.value person.Name
 
@@ -353,17 +355,16 @@ module Receipt =
         }
       }
 
-
     let private renderFeesSubtotalRow (row: ViewModel.ReceiptGridState.FeesSubtotalRow) isEditMode =
 
       tr {
         td { strong { "Fees Subtotal" } }
 
         for value in row.Values do
-          td { "" }
-
           td {
-            attr.``class`` (if value.Price <> 0.0M then "table-success" else "")
+            attr.colspan 2
+            attr.``class`` "text-end"
+            attr.``class`` (getCellClass value.Price)
 
             strong { sprintf "%.2f" value.Price }
           }
@@ -379,13 +380,13 @@ module Receipt =
 
       for value in row.Values do
         td {
-          attr.``class`` (if value.Share <> 0 then "table-success" else "")
+          attr.``class`` (getCellClass value.Price)
 
           value.Share |> string
         }
 
         td {
-          attr.``class`` (if value.Price <> 0.0M then "table-success" else "")
+          attr.``class`` (getCellClass value.Price)
 
           strong { sprintf "%.2f" value.Price }
         }
@@ -402,13 +403,13 @@ module Receipt =
 
         for value in row.Values do
           td {
-            attr.``class`` (if value.Share <> 0 then "table-success" else "")
+            attr.``class`` (getCellClass value.Price)
 
             value.Share |> string
           }
 
           td {
-            attr.``class`` (if value.Price <> 0.0M then "table-success" else "")
+            attr.``class`` (getCellClass value.Price)
 
             strong { sprintf "%.2f" value.Price }
           }

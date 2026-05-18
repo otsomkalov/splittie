@@ -117,6 +117,7 @@ type ReceiptFunctions
       | Ok parseResult ->
         let parsedReceipt: Receipt.Parsed =
           { Id = newReceipt.Id
+            Store = parseResult.Store
             UserId = newReceipt.UserId
             Date = parseResult.Date
             FileName = newReceipt.FileName

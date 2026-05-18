@@ -1,6 +1,9 @@
 {
   "type": "object",
   "properties": {
+    "store": {
+      "type": "string"
+    },
     "date": {
       "type": "string",
       "format": "date-time"
@@ -48,6 +51,11 @@
       }
     }
   },
-  "required": ["date", "items", "fees"],
+  "required": [
+    "store",
+    "date",
+    "items",
+    "fees"
+  ],
   "additionalProperties": false
 }

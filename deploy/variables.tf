@@ -26,6 +26,10 @@ variable "database-connection-string" {
   type = string
 }
 
+variable "web-url" {
+  type = string
+}
+
 variable "env" {
   type    = string
   default = "dev"

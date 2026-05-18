@@ -37,6 +37,7 @@ type Fee =
 type Receipt =
   { [<BsonId; BsonElement "_id">]
     Id: string
+    Store: string
     UserId: string
     Date: DateTime
     FileName: string
@@ -46,6 +47,7 @@ type Receipt =
   static member FromDomain(receipt: Domain.Receipt) =
     let newFromDomain (receipt: Receipt.New) =
       { Id = receipt.Id.Value
+        Store = null
         UserId = receipt.UserId.Value
         Date = receipt.Date
         FileName = receipt.FileName
@@ -54,6 +56,7 @@ type Receipt =
 
     let parsedFromDomain (receipt: Receipt.Parsed) : Receipt =
       { Id = receipt.Id.Value
+        Store = receipt.Store
         UserId = receipt.UserId.Value
         Date = receipt.Date
         FileName = receipt.FileName
@@ -62,6 +65,7 @@ type Receipt =
 
     let unparsedFromDomain (receipt: Receipt.Unparsed) =
       { Id = receipt.Id.Value
+        Store = null
         UserId = receipt.UserId.Value
         Date = receipt.Date
         FileName = receipt.FileName
@@ -78,6 +82,7 @@ type Receipt =
     | { Items = items; Fees = fees } when not (isNull items || isNull fees) ->
       Parsed
         { Id = ReceiptId this.Id
+          Store = this.Store
           FileName = this.FileName
           UserId = UserId this.UserId
           Date = this.Date

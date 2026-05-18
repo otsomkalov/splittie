@@ -32,7 +32,7 @@ resource "azurerm_resource_group" "rg-splittie" {
 resource "azurerm_application_insights" "appi-splittie" {
   resource_group_name = azurerm_resource_group.rg-splittie.name
   location            = azurerm_resource_group.rg-splittie.location
-  workspace_id = azurerm_log_analytics_workspace.appi-ws-splittie.id
+  workspace_id        = azurerm_log_analytics_workspace.appi-ws-splittie.id
 
   name             = "appi-splittie-${var.env}"
   application_type = "web"
@@ -128,6 +128,10 @@ resource "azurerm_function_app_flex_consumption" "func-splittie" {
 
   site_config {
     application_insights_connection_string = azurerm_application_insights.appi-splittie.connection_string
+
+    cors {
+      allowed_origins = [var.web-url]
+    }
   }
 
   app_settings = {
@@ -143,7 +147,7 @@ resource "azurerm_function_app_flex_consumption" "func-splittie" {
     Database__Name = "splittie"
 
     Storage__Container = azurerm_storage_container.stc-splittie-receipts.name
-    Storage__Queue = azurerm_storage_queue.stq-splittie-receipts.name
+    Storage__Queue     = azurerm_storage_queue.stq-splittie-receipts.name
 
     OpenAI__Endpoint = "${azurerm_cognitive_account.ca-splittie.endpoint}openai/v1"
     OpenAI__Model    = azurerm_cognitive_deployment.openai_model.name

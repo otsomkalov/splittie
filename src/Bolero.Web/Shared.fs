@@ -17,3 +17,9 @@ module Loading =
       }
     }
   }
+
+let getCellClass (value: decimal) =
+  if value <> 0.0M then
+    "text-end table-success"
+  else
+    "text-end"

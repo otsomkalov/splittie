@@ -1,5 +1,6 @@
 module Bolero.Web.Components
 
+open BlazorBootstrap
 open Bolero
 open Bolero.Html
 open Bolero.Web.Programs

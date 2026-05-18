@@ -30,6 +30,7 @@ module Receipt =
 
   type Parsed =
     { Id: ReceiptId
+      Store: string
       FileName: string
       UserId: UserId
       Date: DateTime
@@ -60,7 +61,8 @@ type GetError =
   | Access
 
 type ParsingResult =
-  { Date: DateTime
+  { Store: string
+    Date: DateTime
     Items: Receipt.Item list
     Fees: Receipt.Fee list }
 

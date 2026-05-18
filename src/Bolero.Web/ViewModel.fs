@@ -43,7 +43,8 @@ module ViewModel =
         TotalAmount: decimal }
 
     type State =
-      { People: Person list
+      { Store: string
+        People: Person list
         Items: ItemRow list
         ItemsSubtotal: ItemsSubtotalRow
         Fees: FeeRow list
@@ -101,6 +102,7 @@ module ViewModel =
 
       let feeRows =
         receipt.Fees
+        |> List.filter (fun fee -> fee.Amount <> 0M)
         |> List.map (fun fee ->
           let feeId = Guid.NewGuid() |> string |> FeeId
 
@@ -154,7 +156,8 @@ module ViewModel =
 
       let totalFeesAmount = receipt.Fees |> List.sumBy _.Amount
 
-      { People = people
+      { Store = receipt.Store
+        People = people
         Items = itemRows
         ItemsSubtotal =
           { Values = itemsSubtotalValues
@@ -253,7 +256,7 @@ module ViewModel =
 
           { PersonId = p.Id
             Share = shareTotal
-            Price = itemPriceTotal + feesPriceTotal })
+            Price = Math.Round(itemPriceTotal + feesPriceTotal, MidpointRounding.AwayFromZero) })
 
       { state with
           Items = itemRows
@@ -266,7 +269,7 @@ module ViewModel =
               TotalAmount = feesSubtotalTotalAmount }
           Total =
             { Values = totalValues
-              TotalAmount = itemsSubtotalTotalAmount + feesSubtotalTotalAmount } }
+              TotalAmount = (totalValues |> List.sumBy _.Price) } }
 
     let updateShare (itemId: ItemId) (personId: string) (share: int) (state: State) =
       let newItems =

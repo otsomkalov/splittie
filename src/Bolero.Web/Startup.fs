@@ -7,6 +7,7 @@ open System.Net
 open System.Net.Http
 open System.Net.Http.Headers
 open System.Net.Http.Json
+open BlazorBootstrap
 open Domain
 open Microsoft.AspNetCore.Components
 open Microsoft.AspNetCore.Components.WebAssembly.Authentication
@@ -20,7 +21,7 @@ open Shared
 [<CLIMutable>]
 type UploadReceiptResponse = { Id: string }
 
-type Env(httpClientFactory: IHttpClientFactory, logger: ILogger<Env>) =
+type Env(httpClientFactory: IHttpClientFactory, toastService: ToastService, logger: ILogger<Env>) =
   let maxFileSize = 2L * 1_024L * 1_024L // 2 MB
   let client = httpClientFactory.CreateClient(nameof Env)
 
@@ -59,6 +60,9 @@ type Env(httpClientFactory: IHttpClientFactory, logger: ILogger<Env>) =
       return ReceiptId(response.Id)
     }
 
+    member this.ShowNotification(toast) = toastService.Notify(toast)
+
+
 type APIAuthorizationMessageHandler(accessTokenProvider: IAccessTokenProvider, navigationManager: NavigationManager, cfg: IConfiguration) =
   inherit AuthorizationMessageHandler(accessTokenProvider, navigationManager)
 
@@ -90,6 +94,8 @@ builder.Services.AddScoped<IEnv, Env>()
 builder.Services.AddHttpClient(nameof Env, configureHttpClient).AddHttpMessageHandler<APIAuthorizationMessageHandler>()
 
 builder.Logging.SetMinimumLevel(LogLevel.Information)
+
+builder.Services.AddBlazorBootstrap()
 
 builder.RootComponents.Add<Components.Root>("#root")
 

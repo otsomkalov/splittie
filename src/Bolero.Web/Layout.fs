@@ -1,6 +1,7 @@
 [<RequireQualifiedAccess>]
 module Bolero.Web.Layout
 
+open BlazorBootstrap
 open Bolero.Html
 open Microsoft.AspNetCore.Components
 open Microsoft.AspNetCore.Components.Authorization
@@ -137,6 +138,14 @@ module internal Header =
 [<RequireQualifiedAccess>]
 module internal Layout =
   let internal render navManager (body: RenderFragment) = concat {
+    comp<Toasts> {
+      attr.``class`` "p-3"
+
+      "AutoHide" => true
+      "Delay" => 5000
+      "Placement" => ToastsPlacement.TopRight
+    }
+
     Header.render navManager
 
     div {
