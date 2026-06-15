@@ -10,6 +10,10 @@ variable "jwt-issuer" {
   type = string
 }
 
+variable "supported-image-types" {
+  type = list(string)
+}
+
 variable "model-name" {
   type = string
 }
