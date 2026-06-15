@@ -134,24 +134,27 @@ resource "azurerm_function_app_flex_consumption" "func-splittie" {
     }
   }
 
-  app_settings = {
-    KeyVaultName = azurerm_key_vault.kv-splittie.name
+  app_settings = merge(
+    {
+      KeyVaultName = azurerm_key_vault.kv-splittie.name
 
-    Authentication__DefaultScheme                  = "Bearer"
-    Authentication__Schemes__Bearer__Authority     = var.jwt-authority
-    Authentication__Schemes__Bearer__ValidAudience = var.jwt-audience
-    Authentication__Schemes__Bearer__ValidIssuer   = var.jwt-issuer
+      Authentication__DefaultScheme                  = "Bearer"
+      Authentication__Schemes__Bearer__Authority     = var.jwt-authority
+      Authentication__Schemes__Bearer__ValidAudience = var.jwt-audience
+      Authentication__Schemes__Bearer__ValidIssuer   = var.jwt-issuer
 
-    Image__SupportedMimeTypes__0 = "image/jpeg"
+      Database__Name = "splittie"
 
-    Database__Name = "splittie"
+      Storage__Container = azurerm_storage_container.stc-splittie-receipts.name
+      Storage__Queue     = azurerm_storage_queue.stq-splittie-receipts.name
 
-    Storage__Container = azurerm_storage_container.stc-splittie-receipts.name
-    Storage__Queue     = azurerm_storage_queue.stq-splittie-receipts.name
-
-    OpenAI__Endpoint = "${azurerm_cognitive_account.ca-splittie.endpoint}openai/v1"
-    OpenAI__Model    = azurerm_cognitive_deployment.openai_model.name
-  }
+      OpenAI__Endpoint = "${azurerm_cognitive_account.ca-splittie.endpoint}openai/v1"
+      OpenAI__Model    = azurerm_cognitive_deployment.openai_model.name
+    },
+    {
+      for idx, mimeType in var.supported-image-types : "Image__SupportedMimeTypes__${idx}" => mimeType
+    }
+  )
 
   tags = local.tags
 }
