@@ -1,5 +1,6 @@
 ﻿namespace Bolero.Web.Tests
 
+open System
 open Domain
 open Xunit
 open FsUnit.Xunit
@@ -15,7 +16,7 @@ type ReceiptGridState() =
       Store = "Store 1"
       FileName = "receipt1.jpg"
       UserId = Mocks.userId
-      Date = System.DateTime.Now
+      Date = DateTime.Now
       Items =
         [ { Name = "Item 1"
             Quantity = 1
