@@ -76,9 +76,8 @@ module NotFound =
     comp<LayoutView> {
       "Layout" => typeof<Layout.Layout>
 
-      p {
-        "role" => "alert"
-
+      comp<Alert> {
+        "Color" => AlertColor.Warning
         "Sorry, there's nothing at this address."
       }
     }
@@ -93,7 +92,10 @@ type Root() =
       |> Option.ofObj
       |> Option.map _.IsAuthenticated
     with
-    | Some true -> div { "You are not authorized to access this page." }
+    | Some true -> comp<Alert> {
+        "Color" => AlertColor.Warning
+        "You are not authorized to access this page."
+      }
     | _ -> comp<RedirectToLogin> { attr.empty () }
 
   override this.Render() = comp<CascadingAuthenticationState> {
