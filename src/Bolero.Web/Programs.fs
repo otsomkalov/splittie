@@ -2,6 +2,7 @@ module Bolero.Web.Programs
 
 open System
 open BlazorBootstrap
+open Bolero
 open Bolero.Html
 open Bolero.Web.Models
 open Bolero.Web.Repos
@@ -72,6 +73,10 @@ module Receipt =
         IsEditMode: bool }
 
     module Item =
+      type RowModel =
+        { Row: ViewModel.ReceiptGridState.ItemRow
+          IsEditMode: bool }
+
       type Message =
         | Add
         | Remove of ItemId
@@ -101,64 +106,84 @@ module Receipt =
 
       let internal render (row: ViewModel.ReceiptGridState.ItemRow) isEditMode (dispatch: Message -> unit) = tr {
         attr.``class`` (
-          if row.IsWarning then "table-warning"
-          elif row.IsSuccess then "table-success"
-          else ""
+          [ "align-middle"
+            if row.IsWarning then
+              "table-warning"
+            elif row.IsSuccess then
+              "table-success" ]
+          |> String.concat " "
         )
 
         td {
-          input {
-            attr.``class`` "form-control"
-            attr.``type`` "text"
-            attr.value row.Name
-            attr.disabled (not isEditMode)
-            on.change (fun e -> NameUpdate(row.Id, string e.Value, row.TotalAmount) |> dispatch)
-          }
+          cond isEditMode <| function
+            | true ->
+              input {
+                attr.``class`` "form-control"
+                attr.``type`` "text"
+                attr.value row.Name
+                on.change (fun e -> NameUpdate(row.Id, string e.Value, row.TotalAmount) |> dispatch)
+              }
+            | false -> text row.Name
         }
 
-        for value in row.Values do
-          td {
-            attr.``class`` (getCellClass value.Price)
+        forEach row.Values <| fun value ->
+          concat {
+            td {
+              attr.``class`` (getCellClass value.Price)
 
-            input {
-              attr.``class`` "form-control"
-              attr.``type`` "number"
-              attr.min 0
+              input {
+                attr.``class`` "form-control"
+                attr.``type`` "number"
+                attr.min 0
 
-              attr.value (value.Share |> string)
+                attr.value (value.Share |> string)
 
-              on.change (fun e -> SetShare(row.Id, PersonId value.PersonId, int (string e.Value)) |> dispatch)
+                on.change (fun e -> SetShare(row.Id, PersonId value.PersonId, int (string e.Value)) |> dispatch)
+              }
             }
-          }
 
-          td {
-            attr.``class`` (getCellClass value.Price)
+            td {
+              attr.``class`` (getCellClass value.Price)
 
-            sprintf "%.2f" value.Price
+              sprintf "%.2f" value.Price
+            }
           }
 
         td {
-          input {
-            attr.``class`` "form-control"
-            attr.``type`` "number"
-            attr.step "0.01"
-            attr.value (row.TotalAmount |> string)
-            attr.disabled (not isEditMode)
-            on.change (fun e -> NameUpdate(row.Id, row.Name, decimal (string e.Value)) |> dispatch)
-          }
+          cond isEditMode <| function
+            | true ->
+              input {
+                attr.``class`` "form-control"
+                attr.``type`` "number"
+                attr.step "0.01"
+                attr.value (row.TotalAmount |> string)
+                on.change (fun e -> NameUpdate(row.Id, row.Name, decimal (string e.Value)) |> dispatch)
+              }
+            | false -> textf "%.2f" row.TotalAmount
         }
 
-        if isEditMode then
-          td {
-            button {
-              attr.``class`` "btn btn-danger"
-              on.click (fun _ -> Remove row.Id |> dispatch)
-              "Remove"
+        cond isEditMode <| function
+          | true ->
+            td {
+              button {
+                attr.``class`` "btn btn-danger"
+                on.click (fun _ -> Remove row.Id |> dispatch)
+                "Remove"
+              }
             }
-          }
+          | false -> empty()
       }
 
+      type RowComponent() =
+        inherit ElmishComponent<RowModel, Message>()
+
+        override _.View model dispatch = render model.Row model.IsEditMode dispatch
+
     module Fee =
+      type RowModel =
+        { Row: ViewModel.ReceiptGridState.FeeRow
+          IsEditMode: bool }
+
       type Message =
         | Add
         | Remove of FeeId
@@ -180,17 +205,21 @@ module Receipt =
           { model with Grid = grid }, Cmd.none
 
       let internal render (row: ViewModel.ReceiptGridState.FeeRow) isEditMode (dispatch: Message -> unit) = tr {
+        attr.``class`` "align-middle"
+
         td {
-          input {
-            attr.``class`` "form-control"
-            attr.``type`` "text"
-            attr.value row.Type
-            attr.disabled (not isEditMode)
-            on.change (fun e -> TypeUpdate(row.Id, string e.Value, row.TotalAmount) |> dispatch)
-          }
+          cond isEditMode <| function
+            | true ->
+              input {
+                attr.``class`` "form-control"
+                attr.``type`` "text"
+                attr.value row.Type
+                on.change (fun e -> TypeUpdate(row.Id, string e.Value, row.TotalAmount) |> dispatch)
+              }
+            | false -> text row.Type
         }
 
-        for value in row.Values do
+        forEach row.Values <| fun value ->
           td {
             attr.colspan 2
             attr.``class`` (getCellClass value.Price)
@@ -199,25 +228,34 @@ module Receipt =
           }
 
         td {
-          input {
-            attr.``class`` "form-control"
-            attr.``type`` "number"
-            attr.step "0.01"
-            attr.value (row.TotalAmount |> string)
-            attr.disabled (not isEditMode)
-            on.change (fun e -> TypeUpdate(row.Id, row.Type, decimal (string e.Value)) |> dispatch)
-          }
+          cond isEditMode <| function
+            | true ->
+              input {
+                attr.``class`` "form-control"
+                attr.``type`` "number"
+                attr.step "0.01"
+                attr.value (row.TotalAmount |> string)
+                on.change (fun e -> TypeUpdate(row.Id, row.Type, decimal (string e.Value)) |> dispatch)
+              }
+            | false -> textf "%.2f" row.TotalAmount
         }
 
-        if isEditMode then
-          td {
-            button {
-              attr.``class`` "btn btn-danger"
-              on.click (fun _ -> Remove row.Id |> dispatch)
-              "Remove"
+        cond isEditMode <| function
+          | true ->
+            td {
+              button {
+                attr.``class`` "btn btn-danger"
+                on.click (fun _ -> Remove row.Id |> dispatch)
+                "Remove"
+              }
             }
-          }
+          | false -> empty()
       }
+
+      type RowComponent() =
+        inherit ElmishComponent<RowModel, Message>()
+
+        override _.View model dispatch = render model.Row model.IsEditMode dispatch
 
     module Person =
       type Message =
@@ -313,44 +351,57 @@ module Receipt =
             "Name"
           }
 
-          for person in grid.People do
+          forEach grid.People <| fun person ->
             th {
               attr.colspan 2
 
-              input {
-                attr.``class`` "form-control d-inline-block w-full"
-                attr.``type`` "text"
-                attr.value person.Name
+              cond isEditMode <| function
+                | true ->
+                  input {
+                    attr.``class`` "form-control d-inline-block w-full"
+                    attr.``type`` "text"
+                    attr.value person.Name
 
-                on.change (fun e ->
-                  PersonMsg(Person.Message.UpdateName(PersonId person.Id, string e.Value))
-                  |> dispatch)
-              }
+                    on.change (fun e ->
+                      PersonMsg(Person.Message.UpdateName(PersonId person.Id, string e.Value))
+                      |> dispatch)
+                  }
+                | false -> text person.Name
             }
 
           th {
             attr.rowspan 2
-            defaultColumnStyle
+
+            attr.``class`` "item-price-column"
+
             "Price"
           }
 
-          if isEditMode then
-            th {
-              attr.rowspan 2
-              "Action"
-            }
+          cond isEditMode <| function
+            | true ->
+              th {
+                attr.rowspan 2
+                "Action"
+              }
+            | false -> empty()
         }
 
         tr {
-          for _ in grid.People do
-            th {
-              defaultColumnStyle
-              "Quantity"
-            }
+          forEach grid.People <| fun _ ->
+            concat {
+              th {
+                attr.``class`` "quantity-column"
 
-            th {
-              defaultColumnStyle
-              "Price"
+                defaultColumnStyle
+                "Quantity"
+              }
+
+              th {
+                attr.``class`` "user-share-column"
+
+                defaultColumnStyle
+                "Price"
+              }
             }
         }
       }
@@ -360,10 +411,9 @@ module Receipt =
       tr {
         td { strong { "Fees Subtotal" } }
 
-        for value in row.Values do
+        forEach row.Values <| fun value ->
           td {
             attr.colspan 2
-            attr.``class`` "text-end"
             attr.``class`` (getCellClass value.Price)
 
             strong { sprintf "%.2f" value.Price }
@@ -371,37 +421,16 @@ module Receipt =
 
         td { strong { sprintf "%.2f" row.TotalAmount } }
 
-        if isEditMode then
-          td { "" }
+        cond isEditMode <| function
+          | true -> td { "" }
+          | false -> empty()
       }
 
     let private renderItemsSubtotalRow (row: ViewModel.ReceiptGridState.ItemsSubtotalRow) isEditMode = tr {
       td { strong { "Items Subtotal" } }
 
-      for value in row.Values do
-        td {
-          attr.``class`` (getCellClass value.Price)
-
-          value.Share |> string
-        }
-
-        td {
-          attr.``class`` (getCellClass value.Price)
-
-          strong { sprintf "%.2f" value.Price }
-        }
-
-      td { strong { sprintf "%.2f" row.TotalAmount } }
-
-      if isEditMode then
-        td { "" }
-    }
-
-    let private renderTotalRow (row: ViewModel.ReceiptGridState.TotalRow) isEditMode = tfoot {
-      tr {
-        td { strong { "Total" } }
-
-        for value in row.Values do
+      forEach row.Values <| fun value ->
+        concat {
           td {
             attr.``class`` (getCellClass value.Price)
 
@@ -413,11 +442,39 @@ module Receipt =
 
             strong { sprintf "%.2f" value.Price }
           }
+        }
+
+      td { strong { sprintf "%.2f" row.TotalAmount } }
+
+      cond isEditMode <| function
+        | true -> td { "" }
+        | false -> empty()
+    }
+
+    let private renderTotalRow (row: ViewModel.ReceiptGridState.TotalRow) isEditMode = tfoot {
+      tr {
+        td { strong { "Total" } }
+
+        forEach row.Values <| fun value ->
+          concat {
+            td {
+              attr.``class`` (getCellClass value.Price)
+
+              value.Share |> string
+            }
+
+            td {
+              attr.``class`` (getCellClass value.Price)
+
+              strong { sprintf "%.2f" value.Price }
+            }
+          }
 
         td { strong { sprintf "%.2f" row.TotalAmount } }
 
-        if isEditMode then
-          td { "" }
+        cond isEditMode <| function
+          | true -> td { "" }
+          | false -> empty()
       }
     }
 
@@ -425,51 +482,78 @@ module Receipt =
       match model.Grid with
       | None -> Loading.render () dispatch
       | Some grid -> div {
-          attr.``class`` "gap-3"
+          attr.``class`` "d-flex flex-column gap-1"
           attr.style "width: max-content"
 
           div {
             attr.``class`` "d-flex justify-content-between align-items-center"
 
             div {
-              attr.``class`` "d-flex gap-1"
+              attr.``class`` "d-flex align-items-center gap-1"
 
-              button {
-                attr.``class`` "btn btn-primary"
-                on.click (fun _ -> dispatch (PersonMsg Person.Message.Add))
-                "Add Person"
+              comp<Tooltip> {
+                "Title" => "Add person"
+                "Placement" => TooltipPlacement.Top
+                "Class" => "d-inline-block"
+
+                button {
+                  attr.``class`` "btn btn-primary"
+
+                  on.click (fun _ -> dispatch (PersonMsg Person.Message.Add))
+
+                  i { attr.``class`` "bi bi-person-plus" }
+                }
               }
 
-              if model.IsEditMode then
-                button {
-                  attr.``class`` "btn btn-outline-primary"
-                  on.click (fun _ -> dispatch (ItemMsg Item.Message.Add))
-                  "Add Item"
-                }
+              comp<Tooltip> {
+                "Title" => "Export to Splitwise"
 
                 button {
-                  attr.``class`` "btn btn-outline-primary"
-                  on.click (fun _ -> dispatch (FeeMsg Fee.Message.Add))
-                  "Add Fee"
+                  attr.``class`` "btn"
+
+                  img { attr.src "https://secure.splitwise.com/favicon.ico" }
                 }
+              }
+
+              cond model.IsEditMode <| function
+                | true ->
+                  button {
+                    attr.``class`` "btn btn-outline-primary"
+                    on.click (fun _ -> dispatch (ItemMsg Item.Message.Add))
+                    "Add Item"
+                  }
+                | false -> empty()
+
+              cond model.IsEditMode <| function
+                | true ->
+                  button {
+                    attr.``class`` "btn btn-outline-primary"
+                    on.click (fun _ -> dispatch (FeeMsg Fee.Message.Add))
+                    "Add Fee"
+                  }
+                | false -> empty()
             }
 
             div {
-              attr.``class`` "form-check form-switch"
-
               input {
-                attr.``class`` "form-check-input"
                 attr.``type`` "checkbox"
-                attr.id "editModeToggle"
-                attr.tabindex -1
+                attr.``class`` "btn-check"
+                attr.id "edit-mode-toggle"
+                attr.autocomplete "off"
                 attr.``checked`` model.IsEditMode
+
                 on.change (fun _ -> dispatch ToggleEditMode)
               }
 
               label {
-                attr.``class`` "form-check-label"
-                attr.``for`` "editModeToggle"
-                "Edit mode"
+                attr.``class`` "btn btn-outline-warning"
+                attr.``for`` "edit-mode-toggle"
+
+                i {
+                  attr.``class`` "bi bi-pencil"
+                  attr.style "color: black;"
+
+                }
               }
             }
           }
@@ -483,13 +567,25 @@ module Receipt =
               renderHeader grid model.IsEditMode dispatch
 
               tbody {
-                for itemRow in grid.Items do
-                  Item.render itemRow model.IsEditMode (ItemMsg >> dispatch)
+                forEach grid.Items <| fun itemRow ->
+                  let itemRowModel: Item.RowModel =
+                    { Row = itemRow
+                      IsEditMode = model.IsEditMode }
+
+                  ecomp<Item.RowComponent, Item.RowModel, Item.Message> itemRowModel (ItemMsg >> dispatch) {
+                    attr.key itemRow.Id
+                  }
 
                 renderItemsSubtotalRow grid.ItemsSubtotal model.IsEditMode
 
-                for feeRow in grid.Fees do
-                  Fee.render feeRow model.IsEditMode (FeeMsg >> dispatch)
+                forEach grid.Fees <| fun feeRow ->
+                  let feeRowModel: Fee.RowModel =
+                    { Row = feeRow
+                      IsEditMode = model.IsEditMode }
+
+                  ecomp<Fee.RowComponent, Fee.RowModel, Fee.Message> feeRowModel (FeeMsg >> dispatch) {
+                    attr.key feeRow.Id
+                  }
 
                 renderFeesSubtotalRow grid.FeesSubtotal model.IsEditMode
               }

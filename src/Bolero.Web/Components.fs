@@ -34,6 +34,8 @@ type ReceiptDetails(env: IEnv) =
   [<Parameter>]
   member val ReceiptId = Unchecked.defaultof<string> with get, set
 
+  override this.CssScope = CssScopes.receipt
+
   override this.Program =
     Program.mkProgram (Receipt.Details.init this.ReceiptId) (Receipt.Details.update env) Receipt.Details.view
     |> Program.withConsoleTrace
