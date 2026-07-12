@@ -1,5 +1,6 @@
 ﻿namespace Bolero.Web.Tests
 
+open System
 open Domain
 open Xunit
 open FsUnit.Xunit
@@ -15,7 +16,7 @@ type ReceiptGridState() =
       Store = "Store 1"
       FileName = "receipt1.jpg"
       UserId = Mocks.userId
-      Date = System.DateTime.Now
+      Date = DateTime.Now
       Items =
         [ { Name = "Item 1"
             Quantity = 1
@@ -23,7 +24,8 @@ type ReceiptGridState() =
           { Name = "Item 2"
             Quantity = 1
             Amount = 20m } ]
-      Fees = [ { Type = "Service Fee"; Amount = 3m } ] }
+      Fees = [ { Type = "Service Fee"; Amount = 3m } ]
+      CreatedAt = DateTime.Now }
 
   [<Fact>]
   member _.``from should initialize state correctly with no shares``() =
