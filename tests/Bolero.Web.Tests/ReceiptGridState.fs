@@ -24,8 +24,7 @@ type ReceiptGridState() =
           { Name = "Item 2"
             Quantity = 1
             Amount = 20m } ]
-      Fees = [ { Type = "Service Fee"; Amount = 3m } ]
-      CreatedAt = DateTime.Now }
+      Fees = [ { Type = "Service Fee"; Amount = 3m } ] }
 
   [<Fact>]
   member _.``from should initialize state correctly with no shares``() =
