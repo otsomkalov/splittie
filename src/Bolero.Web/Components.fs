@@ -5,6 +5,7 @@ open Bolero
 open Bolero.Html
 open Bolero.Web.Programs
 open Bolero.Web.Repos
+open Domain
 open Elmish
 open Microsoft.AspNetCore.Authorization
 open Microsoft.AspNetCore.Components
@@ -37,7 +38,7 @@ type ReceiptDetails(env: IEnv) =
   override this.CssScope = CssScopes.receipt
 
   override this.Program =
-    Program.mkProgram (Receipt.Details.init this.ReceiptId) (Receipt.Details.update env) Receipt.Details.view
+    Program.mkProgram (Receipt.Details.init (ReceiptId this.ReceiptId)) (Receipt.Details.update env) Receipt.Details.view
     |> Program.withConsoleTrace
 
 [<Authorize; Route("profile")>]
