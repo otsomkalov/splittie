@@ -64,14 +64,9 @@ type Env(httpClientFactory: IHttpClientFactory, toastService: ToastService, logg
     member this.ShowNotification(toast) = toastService.Notify(toast)
 
     member this.ExportReceiptTableAsImage(ReceiptId receiptId, elementId) = task {
-      try
-        do! jsRuntime.InvokeVoidAsync("exportToImage", receiptId, elementId)
+      do! jsRuntime.InvokeVoidAsync("exportToImage", receiptId, elementId)
 
-        return ()
-      with e ->
-        logger.LogError(e, "Error during exporting receipt table to image")
-
-        return ()
+      return ()
     }
 
 type APIAuthorizationMessageHandler(accessTokenProvider: IAccessTokenProvider, navigationManager: NavigationManager, cfg: IConfiguration) =
