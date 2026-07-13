@@ -56,8 +56,9 @@ module Receipt =
         attr.callback "OnChange" (fun (e: InputFileChangeEventArgs) -> e.File |> FileSelected |> dispatch)
       }
 
-      button {
-        attr.``class`` "btn btn-primary"
+      comp<Button> {
+        "Color" => ButtonColor.Primary
+
         attr.disabled model.File.IsNone
         on.click (fun _ -> UploadReceipt |> dispatch)
 
@@ -165,9 +166,11 @@ module Receipt =
         cond isEditMode
         <| function
           | true -> td {
-              button {
-                attr.``class`` "btn btn-danger"
+              comp<Button> {
+                "Color" => ButtonColor.Danger
+
                 on.click (fun _ -> Remove row.Id |> dispatch)
+
                 "Remove"
               }
             }
@@ -244,9 +247,11 @@ module Receipt =
         cond isEditMode
         <| function
           | true -> td {
-              button {
-                attr.``class`` "btn btn-danger"
+              comp<Button> {
+                "Color" => ButtonColor.Danger
+
                 on.click (fun _ -> Remove row.Id |> dispatch)
+
                 "Remove"
               }
             }
@@ -501,8 +506,8 @@ module Receipt =
                 "Placement" => TooltipPlacement.Top
                 "Class" => "d-inline-block"
 
-                button {
-                  attr.``class`` "btn btn-primary"
+                comp<Button> {
+                  "Color" => ButtonColor.Primary
 
                   on.click (fun _ -> dispatch (PersonMsg Person.Message.Add))
 
@@ -513,27 +518,29 @@ module Receipt =
               comp<Tooltip> {
                 "Title" => "Export to Splitwise"
 
-                button {
-                  attr.``class`` "btn"
-
-                  img { attr.src "https://secure.splitwise.com/favicon.ico" }
-                }
+                comp<Button> { img { attr.src "https://secure.splitwise.com/favicon.ico" } }
               }
 
               cond model.IsEditMode
               <| function
-                | true -> button {
-                    attr.``class`` "btn btn-outline-primary"
+                | true -> comp<Button> {
+                    "Color" => ButtonColor.Primary
+                    "Outline" => true
+
                     on.click (fun _ -> dispatch (ItemMsg Item.Message.Add))
+
                     "Add Item"
                   }
                 | false -> empty ()
 
               cond model.IsEditMode
               <| function
-                | true -> button {
-                    attr.``class`` "btn btn-outline-primary"
+                | true -> comp<Button> {
+                    "Color" => ButtonColor.Primary
+                    "Outline" => true
+
                     on.click (fun _ -> dispatch (FeeMsg Fee.Message.Add))
+
                     "Add Fee"
                   }
                 | false -> empty ()

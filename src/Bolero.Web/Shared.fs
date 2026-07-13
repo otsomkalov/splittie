@@ -1,5 +1,6 @@
 module Bolero.Web.Shared
 
+open BlazorBootstrap
 open Bolero.Html
 
 [<RequireQualifiedAccess>]
@@ -7,14 +8,10 @@ module Loading =
   let render () _ = div {
     attr.``class`` "d-flex flex-column align-items-center justify-content-center vh-100"
 
-    div {
-      attr.``class`` "spinner-border text-primary"
-      "role" => "status"
-
-      span {
-        attr.``class`` "visually-hidden"
-        text "Loading..."
-      }
+    comp<Spinner> {
+      "Type" => SpinnerType.Border
+      "Color" => SpinnerColor.Primary
+      "VisuallyHiddenText" => "Loading..."
     }
   }
 
