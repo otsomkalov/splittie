@@ -69,7 +69,8 @@ module Receipt =
   [<RequireQualifiedAccess>]
   module Details =
     type Model =
-      { People: Person list
+      { ReceiptId: ReceiptId
+        People: Person list
         Grid: ViewModel.ReceiptGridState.State option
         IsEditMode: bool }
 
@@ -304,7 +305,7 @@ module Receipt =
 
     module Receipt =
       type Message =
-        | Load of string
+        | Load of ReceiptId
         | Receipt of AsyncOp<Receipt option>
 
       let update (env: #IGetReceipt) wrap msg model =
@@ -323,8 +324,13 @@ module Receipt =
         | Receipt(Finished(Some(Receipt.Unparsed _))) -> { model with Grid = None }, Cmd.none
         | _ -> { model with Grid = None }, Cmd.none
 
+    type ImageExportMessage =
+      | Start of ReceiptId
+      | Finished of Result<unit, unit>
+
     type Message =
       | ToggleEditMode
+      | ImageExport of ImageExportMessage
       | ItemMsg of Item.Message
       | FeeMsg of Fee.Message
       | PersonMsg of Person.Message
@@ -332,17 +338,30 @@ module Receipt =
 
     let init receiptId =
       fun _ ->
-        { People = [ { Id = PersonId "1"; Name = "Me" } ]
+        { ReceiptId = receiptId
+          People = [ { Id = PersonId "1"; Name = "Me" } ]
           Grid = None
           IsEditMode = false },
         Cmd.batch [ Cmd.ofMsg (ReceiptMsg(Receipt.Message.Load receiptId)) ]
 
-    let update (env: #IGetReceipt) msg model =
+    let update (env: #IGetReceipt & #IExportReceiptTableAsImage & #IShowNotification) msg model =
       match msg with
       | ToggleEditMode ->
         { model with
             IsEditMode = not model.IsEditMode },
         Cmd.none
+      | ImageExport(Start receiptId) ->
+        model,
+        Cmd.OfTask.either env.ExportReceiptTableAsImage (receiptId, "receipt-table") (fun _ -> ImageExport(Finished(Ok()))) (fun _ ->
+          ImageExport(Finished(Error())))
+      | ImageExport(Finished(Ok _)) ->
+        env.ShowNotification(ToastMessage(ToastType.Success, "Receipt table exported successfully"))
+
+        model, Cmd.none
+      | ImageExport(Finished(Error _)) ->
+        env.ShowNotification(ToastMessage(ToastType.Danger, $"Failed to export receipt to image!"))
+
+        model, Cmd.none
       | ItemMsg msg -> Item.update msg model
       | FeeMsg msg -> Fee.update msg model
       | PersonMsg msg -> Person.update msg model
@@ -499,54 +518,6 @@ module Receipt =
             attr.``class`` "d-flex justify-content-between align-items-center"
 
             div {
-              attr.``class`` "d-flex align-items-center gap-1"
-
-              comp<Tooltip> {
-                "Title" => "Add person"
-                "Placement" => TooltipPlacement.Top
-                "Class" => "d-inline-block"
-
-                comp<Button> {
-                  "Color" => ButtonColor.Primary
-
-                  on.click (fun _ -> dispatch (PersonMsg Person.Message.Add))
-
-                  i { attr.``class`` "bi bi-person-plus" }
-                }
-              }
-
-              comp<Tooltip> {
-                "Title" => "Export to Splitwise"
-
-                comp<Button> { img { attr.src "https://secure.splitwise.com/favicon.ico" } }
-              }
-
-              cond model.IsEditMode
-              <| function
-                | true -> comp<Button> {
-                    "Color" => ButtonColor.Primary
-                    "Outline" => true
-
-                    on.click (fun _ -> dispatch (ItemMsg Item.Message.Add))
-
-                    "Add Item"
-                  }
-                | false -> empty ()
-
-              cond model.IsEditMode
-              <| function
-                | true -> comp<Button> {
-                    "Color" => ButtonColor.Primary
-                    "Outline" => true
-
-                    on.click (fun _ -> dispatch (FeeMsg Fee.Message.Add))
-
-                    "Add Fee"
-                  }
-                | false -> empty ()
-            }
-
-            div {
               input {
                 attr.``type`` "checkbox"
                 attr.``class`` "btn-check"
@@ -568,12 +539,86 @@ module Receipt =
                 }
               }
             }
+
+            div {
+              attr.``class`` "d-flex align-items-center gap-1"
+
+              cond model.IsEditMode
+              <| function
+                | true -> concat {
+                    comp<Tooltip> {
+                      "Title" => "Add person"
+                      "Placement" => TooltipPlacement.Top
+                      "Class" => "d-inline-block"
+
+                      comp<Button> {
+                        "Color" => ButtonColor.Primary
+
+                        on.click (fun _ -> dispatch (PersonMsg Person.Message.Add))
+
+                        i { attr.``class`` "bi bi-person-plus" }
+                      }
+                    }
+
+                    comp<Button> {
+                      "Color" => ButtonColor.Primary
+                      "Outline" => true
+
+                      on.click (fun _ -> dispatch (ItemMsg Item.Message.Add))
+
+                      "Add Item"
+                    }
+
+                    comp<Button> {
+                      "Color" => ButtonColor.Primary
+                      "Outline" => true
+
+                      on.click (fun _ -> dispatch (FeeMsg Fee.Message.Add))
+
+                      "Add Fee"
+                    }
+                  }
+                | false -> empty ()
+
+            }
+
+            div {
+              comp<Dropdown> {
+                "Color" => ButtonColor.Secondary
+
+                comp<DropdownToggleButton> { "Export" }
+
+                comp<DropdownMenu> {
+                  comp<DropdownItem> {
+                    attr.``class`` "d-flex gap-1 align-items-center"
+
+                    on.click (fun _ -> ImageExport(Start model.ReceiptId) |> dispatch)
+
+                    i {
+                      attr.``class`` "bi bi-image"
+                      attr.style "font-size: 32px; line-height: 0;"
+                    }
+
+                    "Export as image"
+                  }
+
+                  comp<DropdownItem> {
+                    attr.``class`` "d-flex gap-1 align-items-center"
+
+                    img { attr.src "https://secure.splitwise.com/favicon.ico" }
+
+                    "Export to Splitwise"
+                  }
+                }
+              }
+            }
           }
 
           div {
             attr.``class`` "d-flex"
 
             table {
+              attr.id "receipt-table"
               attr.``class`` "table table-bordered w-auto"
 
               renderHeader grid model.IsEditMode dispatch

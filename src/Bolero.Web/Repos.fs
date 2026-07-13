@@ -9,7 +9,7 @@ type IListReceipts =
   abstract ListReceipts: unit -> Task<Receipt.Parsed list>
 
 type IGetReceipt =
-  abstract GetReceipt: string -> Task<Receipt option>
+  abstract GetReceipt: ReceiptId -> Task<Receipt option>
 
 type IUploadReceipt =
   abstract UploadReceipt: IBrowserFile -> Task<ReceiptId>
@@ -17,7 +17,11 @@ type IUploadReceipt =
 type IShowNotification =
   abstract ShowNotification: ToastMessage -> unit
 
+type IExportReceiptTableAsImage =
+  abstract ExportReceiptTableAsImage: ReceiptId * string -> Task<unit>
+
 type IEnv =
   inherit IGetReceipt
   inherit IUploadReceipt
   inherit IShowNotification
+  inherit IExportReceiptTableAsImage

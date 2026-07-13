@@ -15,13 +15,14 @@ open Microsoft.AspNetCore.Components.WebAssembly.Hosting
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Configuration
+open Microsoft.JSInterop
 open Bolero.Web.Repos
 open Shared
 
 [<CLIMutable>]
 type UploadReceiptResponse = { Id: string }
 
-type Env(httpClientFactory: IHttpClientFactory, toastService: ToastService, logger: ILogger<Env>) =
+type Env(httpClientFactory: IHttpClientFactory, toastService: ToastService, logger: ILogger<Env>, jsRuntime: IJSRuntime) =
   let maxFileSize = 2L * 1_024L * 1_024L // 2 MB
   let client = httpClientFactory.CreateClient(nameof Env)
 
@@ -29,7 +30,7 @@ type Env(httpClientFactory: IHttpClientFactory, toastService: ToastService, logg
   let receiptsRoute = "receipts"
 
   interface IEnv with
-    member this.GetReceipt(receiptId) = task {
+    member this.GetReceipt(ReceiptId receiptId) = task {
       try
         let! result = client.GetFromJsonAsync<Receipt>($"{receiptsRoute}/{receiptId}", JSON.SerializerOptions)
 
@@ -62,6 +63,11 @@ type Env(httpClientFactory: IHttpClientFactory, toastService: ToastService, logg
 
     member this.ShowNotification(toast) = toastService.Notify(toast)
 
+    member this.ExportReceiptTableAsImage(ReceiptId receiptId, elementId) = task {
+      do! jsRuntime.InvokeVoidAsync("exportToImage", receiptId, elementId)
+
+      return ()
+    }
 
 type APIAuthorizationMessageHandler(accessTokenProvider: IAccessTokenProvider, navigationManager: NavigationManager, cfg: IConfiguration) =
   inherit AuthorizationMessageHandler(accessTokenProvider, navigationManager)
