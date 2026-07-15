@@ -45,10 +45,11 @@ type ReceiptDetails(env: IEnv) =
 type Profile() =
   inherit Component()
 
-  override this.Render() = comp<AuthorizeView> {
-    attr.fragmentWith "Authorized" (fun (state: AuthenticationState) -> div { sprintf "Hello %s" state.User.Identity.Name })
-    attr.fragmentWith "NotAuthorized" (fun (_: AuthenticationState) -> p { "You are not authorized" })
-  }
+  override this.Render() =
+    comp<AuthorizeView> {
+      attr.fragmentWith "Authorized" (fun (state: AuthenticationState) -> div { sprintf "Hello %s" state.User.Identity.Name })
+      attr.fragmentWith "NotAuthorized" (fun (_: AuthenticationState) -> p { "You are not authorized" })
+    }
 
 [<AllowAnonymous; Route("/authentication/{action}")>]
 type Authentication() =
@@ -57,7 +58,8 @@ type Authentication() =
   [<Parameter>]
   member val Action: string | null = null with get, set
 
-  override this.Render() = comp<RemoteAuthenticatorView> { "Action" => this.Action }
+  override this.Render() =
+    comp<RemoteAuthenticatorView> { "Action" => this.Action }
 
 type RedirectToLogin(navManager: NavigationManager) =
   inherit Component()
@@ -71,18 +73,19 @@ type RedirectToLogin(navManager: NavigationManager) =
 
 [<RequireQualifiedAccess>]
 module NotFound =
-  let view () = div {
-    comp<PageTitle> { "Not found" }
+  let view () =
+    div {
+      comp<PageTitle> { "Not found" }
 
-    comp<LayoutView> {
-      "Layout" => typeof<Layout.Layout>
+      comp<LayoutView> {
+        "Layout" => typeof<Layout.Layout>
 
-      comp<Alert> {
-        "Color" => AlertColor.Warning
-        "Sorry, there's nothing at this address."
+        comp<Alert> {
+          "Color" => AlertColor.Warning
+          "Sorry, there's nothing at this address."
+        }
       }
     }
-  }
 
 type Root() =
   inherit Component()
@@ -93,30 +96,33 @@ type Root() =
       |> Option.ofObj
       |> Option.map _.IsAuthenticated
     with
-    | Some true -> comp<Alert> {
+    | Some true ->
+      comp<Alert> {
         "Color" => AlertColor.Warning
         "You are not authorized to access this page."
       }
     | _ -> comp<RedirectToLogin> { attr.empty () }
 
-  override this.Render() = comp<CascadingAuthenticationState> {
-    comp<Router> {
-      "AppAssembly" => typeof<Root>.Assembly
+  override this.Render() =
+    comp<CascadingAuthenticationState> {
+      comp<Router> {
+        "AppAssembly" => typeof<Root>.Assembly
 
-      attr.fragmentWith "Found" (fun (routeData: RouteData) -> concat {
-        comp<AuthorizeRouteView> {
-          "RouteData" => routeData
-          "DefaultLayout" => typeof<Layout.Layout>
+        attr.fragmentWith "Found" (fun (routeData: RouteData) ->
+          concat {
+            comp<AuthorizeRouteView> {
+              "RouteData" => routeData
+              "DefaultLayout" => typeof<Layout.Layout>
 
-          attr.fragmentWith "NotAuthorized" unauthorizedView
-        }
+              attr.fragmentWith "NotAuthorized" unauthorizedView
+            }
 
-        comp<FocusOnNavigate> {
-          "RouteData" => routeData
-          "Selector" => "h1"
-        }
-      })
+            comp<FocusOnNavigate> {
+              "RouteData" => routeData
+              "Selector" => "h1"
+            }
+          })
 
-      attr.fragment "NotFound" (NotFound.view ())
+        attr.fragment "NotFound" (NotFound.view ())
+      }
     }
-  }

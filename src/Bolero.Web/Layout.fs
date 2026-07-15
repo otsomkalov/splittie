@@ -10,150 +10,155 @@ open Microsoft.AspNetCore.Components.WebAssembly.Authentication
 
 [<RequireQualifiedAccess>]
 module internal HeaderLinks =
-  let view () = ul {
-    attr.``class`` "navbar-nav"
-
-    li {
-      attr.``class`` "nav-item"
-
-      navLink NavLinkMatch.All {
-        attr.``class`` "nav-link"
-        attr.href "/"
-
-        "Home"
-      }
-    }
-
-    li {
-      attr.``class`` "nav-item"
-
-      navLink NavLinkMatch.All {
-        attr.``class`` "nav-link"
-        attr.href "receipts/new"
-
-        "New Receipt"
-      }
-    }
-  }
-
-[<RequireQualifiedAccess>]
-module internal HeaderLogin =
-  let view () = li {
-    attr.``class`` "nav-item"
-
-    navLink NavLinkMatch.All {
-      attr.``class`` "nav-link"
-      attr.href "authentication/login"
-
-      "Login"
-    }
-  }
-
-[<RequireQualifiedAccess>]
-module internal HeaderAuth =
-  let view (navManager: NavigationManager) (state: AuthenticationState) = li {
-    attr.``class`` "nav-item dropdown"
-
-    navLink NavLinkMatch.All {
-      attr.``class`` "nav-link dropdown-toggle"
-      attr.href "#"
-      "role" => "button"
-      "data-bs-toggle" => "dropdown"
-      "aria-expanded" => "false"
-
-      string state.User.Identity.Name
-    }
-
+  let view () =
     ul {
-      attr.``class`` "dropdown-menu"
+      attr.``class`` "navbar-nav"
 
       li {
-        attr.``class`` "dropdown-item"
+        attr.``class`` "nav-item"
 
         navLink NavLinkMatch.All {
           attr.``class`` "nav-link"
-          attr.href "profile"
+          attr.href "/"
 
-          "Profile"
+          "Home"
         }
       }
 
       li {
-        attr.``class`` "dropdown-item"
+        attr.``class`` "nav-item"
 
-        button {
+        navLink NavLinkMatch.All {
           attr.``class`` "nav-link"
-          on.click (fun _ -> navManager.NavigateToLogout("authentication/logout"))
+          attr.href "receipts/new"
 
-          "Logout"
+          "New Receipt"
         }
       }
     }
-  }
 
-module internal Header =
-  let render navManager = nav {
-    attr.``class`` "navbar bg-primary navbar-expand-lg mb-2"
-    "data-bs-theme" => "dark"
+[<RequireQualifiedAccess>]
+module internal HeaderLogin =
+  let view () =
+    li {
+      attr.``class`` "nav-item"
 
-    div {
-      attr.``class`` "container-fluid"
+      navLink NavLinkMatch.All {
+        attr.``class`` "nav-link"
+        attr.href "authentication/login"
 
-      a {
-        attr.``class`` "navbar-brand"
-        attr.href "/"
-        "GlovoSplit"
+        "Login"
       }
+    }
 
-      button {
-        attr.``class`` "navbar-toggler"
-        attr.``type`` "button"
-        "data-bs-toggle" => "collapse"
-        "data-bs-target" => "#navbarNavDropdown"
-        "aria-controls" => "navbarNavDropdown"
+[<RequireQualifiedAccess>]
+module internal HeaderAuth =
+  let view (navManager: NavigationManager) (state: AuthenticationState) =
+    li {
+      attr.``class`` "nav-item dropdown"
+
+      navLink NavLinkMatch.All {
+        attr.``class`` "nav-link dropdown-toggle"
+        attr.href "#"
+        "role" => "button"
+        "data-bs-toggle" => "dropdown"
         "aria-expanded" => "false"
-        "aria-label" => "Toggle navigation"
 
-        span { attr.``class`` "navbar-toggler-icon" }
+        string state.User.Identity.Name
       }
 
-      div {
-        attr.``class`` "collapse navbar-collapse justify-content-between"
-        attr.id "navbarNavDropdown"
+      ul {
+        attr.``class`` "dropdown-menu"
 
-        HeaderLinks.view ()
+        li {
+          attr.``class`` "dropdown-item"
 
-        ul {
-          attr.``class`` "navbar-nav"
+          navLink NavLinkMatch.All {
+            attr.``class`` "nav-link"
+            attr.href "profile"
 
-          comp<AuthorizeView> {
-            attr.fragmentWith "Authorized" (fun (state: AuthenticationState) -> HeaderAuth.view navManager state)
-            attr.fragmentWith "NotAuthorized" (fun (_: AuthenticationState) -> HeaderLogin.view ())
+            "Profile"
+          }
+        }
+
+        li {
+          attr.``class`` "dropdown-item"
+
+          button {
+            attr.``class`` "nav-link"
+            on.click (fun _ -> navManager.NavigateToLogout("authentication/logout"))
+
+            "Logout"
           }
         }
       }
     }
-  }
+
+module internal Header =
+  let render navManager =
+    nav {
+      attr.``class`` "navbar bg-primary navbar-expand-lg mb-2"
+      "data-bs-theme" => "dark"
+
+      div {
+        attr.``class`` "container-fluid"
+
+        a {
+          attr.``class`` "navbar-brand"
+          attr.href "/"
+          "GlovoSplit"
+        }
+
+        button {
+          attr.``class`` "navbar-toggler"
+          attr.``type`` "button"
+          "data-bs-toggle" => "collapse"
+          "data-bs-target" => "#navbarNavDropdown"
+          "aria-controls" => "navbarNavDropdown"
+          "aria-expanded" => "false"
+          "aria-label" => "Toggle navigation"
+
+          span { attr.``class`` "navbar-toggler-icon" }
+        }
+
+        div {
+          attr.``class`` "collapse navbar-collapse justify-content-between"
+          attr.id "navbarNavDropdown"
+
+          HeaderLinks.view ()
+
+          ul {
+            attr.``class`` "navbar-nav"
+
+            comp<AuthorizeView> {
+              attr.fragmentWith "Authorized" (fun (state: AuthenticationState) -> HeaderAuth.view navManager state)
+              attr.fragmentWith "NotAuthorized" (fun (_: AuthenticationState) -> HeaderLogin.view ())
+            }
+          }
+        }
+      }
+    }
 
 [<RequireQualifiedAccess>]
 module internal Layout =
-  let internal render navManager (body: RenderFragment) = concat {
-    comp<Toasts> {
-      attr.``class`` "p-3"
+  let internal render navManager (body: RenderFragment) =
+    concat {
+      comp<Toasts> {
+        attr.``class`` "p-3"
 
-      "AutoHide" => true
-      "Delay" => 5000
-      "Placement" => ToastsPlacement.TopRight
+        "AutoHide" => true
+        "Delay" => 5000
+        "Placement" => ToastsPlacement.TopRight
+      }
+
+      Header.render navManager
+
+      div {
+        attr.``class`` "container-fluid"
+
+        body
+      }
     }
-
-    Header.render navManager
-
-    div {
-      attr.``class`` "container-fluid"
-
-      body
-    }
-  }
 
 type Layout() =
   inherit LayoutComponentBase()

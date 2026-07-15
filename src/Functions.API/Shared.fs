@@ -64,32 +64,33 @@ type SpltwisePaymentPlatformFactory
     httpClientFactory.CreateClient(nameof SpltwisePaymentPlatformFactory)
 
   interface IPaymentPlatformFactory with
-    member this.Get _ = taskOption {
-      let! accessToken =
-        match request.Headers.Authorization |> string with
-        | token when token.StartsWith "Bearer " -> Some(token.Substring 7)
-        | _ -> None
+    member this.Get _ =
+      taskOption {
+        let! accessToken =
+          match request.Headers.Authorization |> string with
+          | token when token.StartsWith "Bearer " -> Some(token.Substring 7)
+          | _ -> None
 
-      use splitwiseTokenRequest =
-        new HttpRequestMessage(HttpMethod.Get, $"realms/{keycloakSettings.Realm}/broker/{keycloakSettings.Broker}/token")
+        use splitwiseTokenRequest =
+          new HttpRequestMessage(HttpMethod.Get, $"realms/{keycloakSettings.Realm}/broker/{keycloakSettings.Broker}/token")
 
-      splitwiseTokenRequest.Headers.Authorization <- AuthenticationHeaderValue("Bearer", accessToken)
+        splitwiseTokenRequest.Headers.Authorization <- AuthenticationHeaderValue("Bearer", accessToken)
 
-      try
-        use! splitwiseTokenResponse = httpClient.SendAsync(splitwiseTokenRequest)
+        try
+          use! splitwiseTokenResponse = httpClient.SendAsync(splitwiseTokenRequest)
 
-        let! splitwiseToken =
-          splitwiseTokenResponse.Content.ReadFromJsonAsync<TokenResponse>()
-          |> Task.map Option.ofObj
+          let! splitwiseToken =
+            splitwiseTokenResponse.Content.ReadFromJsonAsync<TokenResponse>()
+            |> Task.map Option.ofObj
 
-        let splitwiseClient = SplitwiseClient(splitwiseToken.AccessToken)
+          let splitwiseClient = SplitwiseClient(splitwiseToken.AccessToken)
 
-        return SplitwisePaymentPlatform splitwiseClient :> IPaymentPlatform
-      with e ->
-        logger.LogError(e, "Error during building Splitwise client using Keycloak")
+          return SplitwisePaymentPlatform splitwiseClient :> IPaymentPlatform
+        with e ->
+          logger.LogError(e, "Error during building Splitwise client using Keycloak")
 
-        return! None
-    }
+          return! None
+      }
 
 let spltwisePaymentPlatformFactory keycloakOptions httpClientFactory logger =
   fun request -> SpltwisePaymentPlatformFactory(keycloakOptions, httpClientFactory, logger, request) :> IPaymentPlatformFactory

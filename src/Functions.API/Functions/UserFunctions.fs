@@ -12,15 +12,16 @@ open PaymentPlatform
 type UserFunctions(authSvc: IAuthenticationService, paymentPlatformFactory: HttpRequest -> IPaymentPlatformFactory) =
   [<Function("ListFriends")>]
   member this.ListFriends([<HttpTrigger("GET", Route = "users/me/friends")>] request: HttpRequest) : Task<IActionResult> =
-    let handler (user: TokenUser) = taskResult {
-      let paymentPlatformFactory = paymentPlatformFactory request
+    let handler (user: TokenUser) =
+      taskResult {
+        let paymentPlatformFactory = paymentPlatformFactory request
 
-      let! paymentPlatform =
-        paymentPlatformFactory.Get(user.UserId.Value |> UserId)
-        |> TaskResult.requireSome (RequestError.OperationError "Payment platform not found")
+        let! paymentPlatform =
+          paymentPlatformFactory.Get(user.UserId.Value |> UserId)
+          |> TaskResult.requireSome (RequestError.OperationError "Payment platform not found")
 
-      return! paymentPlatform.ListFriends()
-    }
+        return! paymentPlatform.ListFriends()
+      }
 
     validateUser authSvc request
     |> TaskResult.bind handler

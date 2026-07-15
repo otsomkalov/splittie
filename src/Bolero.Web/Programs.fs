@@ -46,25 +46,26 @@ module Receipt =
           model, Cmd.none
         | _ -> model, Cmd.none
 
-    let view (model: Model) dispatch = div {
-      attr.``class`` "d-flex flex-row gap-2"
+    let view (model: Model) dispatch =
+      div {
+        attr.``class`` "d-flex flex-row gap-2"
 
-      comp<InputFile> {
-        attr.``class`` "form-control"
-        attr.accept "image/*"
+        comp<InputFile> {
+          attr.``class`` "form-control"
+          attr.accept "image/*"
 
-        attr.callback "OnChange" (fun (e: InputFileChangeEventArgs) -> e.File |> FileSelected |> dispatch)
+          attr.callback "OnChange" (fun (e: InputFileChangeEventArgs) -> e.File |> FileSelected |> dispatch)
+        }
+
+        comp<Button> {
+          "Color" => ButtonColor.Primary
+
+          attr.disabled model.File.IsNone
+          on.click (fun _ -> UploadReceipt |> dispatch)
+
+          "Upload"
+        }
       }
-
-      comp<Button> {
-        "Color" => ButtonColor.Primary
-
-        attr.disabled model.File.IsNone
-        on.click (fun _ -> UploadReceipt |> dispatch)
-
-        "Upload"
-      }
-    }
 
   [<RequireQualifiedAccess>]
   module Details =
@@ -106,77 +107,82 @@ module Receipt =
 
           { model with Grid = grid }, Cmd.none
 
-      let internal render (row: ViewModel.ReceiptGridState.ItemRow) isEditMode (dispatch: Message -> unit) = tr {
-        attr.``class`` (
-          [ "align-middle"
-            if row.IsWarning then
-              "table-warning"
-            elif row.IsSuccess then
-              "table-success" ]
-          |> String.concat " "
-        )
-
-        td {
-          cond isEditMode
-          <| function
-            | true -> input {
-                attr.``class`` "form-control"
-                attr.``type`` "text"
-                attr.value row.Name
-                on.change (fun e -> NameUpdate(row.Id, string e.Value, row.TotalAmount) |> dispatch)
-              }
-            | false -> text row.Name
-        }
-
-        forEach row.Values
-        <| fun value -> concat {
-          td {
-            attr.``class`` (getCellClass value.Price)
-
-            input {
-              attr.``class`` "form-control"
-              attr.``type`` "number"
-              attr.min 0
-
-              attr.value (value.Share |> string)
-
-              on.change (fun e -> SetShare(row.Id, PersonId value.PersonId, int (string e.Value)) |> dispatch)
-            }
-          }
+      let internal render (row: ViewModel.ReceiptGridState.ItemRow) isEditMode (dispatch: Message -> unit) =
+        tr {
+          attr.``class`` (
+            [ "align-middle"
+              if row.IsWarning then
+                "table-warning"
+              elif row.IsSuccess then
+                "table-success" ]
+            |> String.concat " "
+          )
 
           td {
-            attr.``class`` (getCellClass value.Price)
-
-            sprintf "%.2f" value.Price
+            cond isEditMode
+            <| function
+              | true ->
+                input {
+                  attr.``class`` "form-control"
+                  attr.``type`` "text"
+                  attr.value row.Name
+                  on.change (fun e -> NameUpdate(row.Id, string e.Value, row.TotalAmount) |> dispatch)
+                }
+              | false -> text row.Name
           }
-        }
 
-        td {
-          cond isEditMode
-          <| function
-            | true -> input {
-                attr.``class`` "form-control"
-                attr.``type`` "number"
-                attr.step "0.01"
-                attr.value (row.TotalAmount |> string)
-                on.change (fun e -> NameUpdate(row.Id, row.Name, decimal (string e.Value)) |> dispatch)
+          forEach row.Values
+          <| fun value ->
+            concat {
+              td {
+                attr.``class`` (getCellClass value.Price)
+
+                input {
+                  attr.``class`` "form-control"
+                  attr.``type`` "number"
+                  attr.min 0
+
+                  attr.value (value.Share |> string)
+
+                  on.change (fun e -> SetShare(row.Id, PersonId value.PersonId, int (string e.Value)) |> dispatch)
+                }
               }
-            | false -> textf "%.2f" row.TotalAmount
-        }
 
-        cond isEditMode
-        <| function
-          | true -> td {
-              comp<Button> {
-                "Color" => ButtonColor.Danger
+              td {
+                attr.``class`` (getCellClass value.Price)
 
-                on.click (fun _ -> Remove row.Id |> dispatch)
-
-                "Remove"
+                sprintf "%.2f" value.Price
               }
             }
-          | false -> empty ()
-      }
+
+          td {
+            cond isEditMode
+            <| function
+              | true ->
+                input {
+                  attr.``class`` "form-control"
+                  attr.``type`` "number"
+                  attr.step "0.01"
+                  attr.value (row.TotalAmount |> string)
+                  on.change (fun e -> NameUpdate(row.Id, row.Name, decimal (string e.Value)) |> dispatch)
+                }
+              | false -> textf "%.2f" row.TotalAmount
+          }
+
+          cond isEditMode
+          <| function
+            | true ->
+              td {
+                comp<Button> {
+                  "Color" => ButtonColor.Danger
+
+                  on.click (fun _ -> Remove row.Id |> dispatch)
+
+                  "Remove"
+                }
+              }
+            | false -> empty ()
+        }
 
       type RowComponent() =
         inherit ElmishComponent<RowModel, Message>()
@@ -209,55 +215,60 @@ module Receipt =
 
           { model with Grid = grid }, Cmd.none
 
-      let internal render (row: ViewModel.ReceiptGridState.FeeRow) isEditMode (dispatch: Message -> unit) = tr {
-        attr.``class`` "align-middle"
+      let internal render (row: ViewModel.ReceiptGridState.FeeRow) isEditMode (dispatch: Message -> unit) =
+        tr {
+          attr.``class`` "align-middle"
 
-        td {
-          cond isEditMode
-          <| function
-            | true -> input {
-                attr.``class`` "form-control"
-                attr.``type`` "text"
-                attr.value row.Type
-                on.change (fun e -> TypeUpdate(row.Id, string e.Value, row.TotalAmount) |> dispatch)
-              }
-            | false -> text row.Type
-        }
+          td {
+            cond isEditMode
+            <| function
+              | true ->
+                input {
+                  attr.``class`` "form-control"
+                  attr.``type`` "text"
+                  attr.value row.Type
+                  on.change (fun e -> TypeUpdate(row.Id, string e.Value, row.TotalAmount) |> dispatch)
+                }
+              | false -> text row.Type
+          }
 
-        forEach row.Values
-        <| fun value -> td {
-          attr.colspan 2
-          attr.``class`` (getCellClass value.Price)
+          forEach row.Values
+          <| fun value ->
+            td {
+              attr.colspan 2
+              attr.``class`` (getCellClass value.Price)
 
-          sprintf "%.2f" value.Price
-        }
-
-        td {
-          cond isEditMode
-          <| function
-            | true -> input {
-                attr.``class`` "form-control"
-                attr.``type`` "number"
-                attr.step "0.01"
-                attr.value (row.TotalAmount |> string)
-                on.change (fun e -> TypeUpdate(row.Id, row.Type, decimal (string e.Value)) |> dispatch)
-              }
-            | false -> textf "%.2f" row.TotalAmount
-        }
-
-        cond isEditMode
-        <| function
-          | true -> td {
-              comp<Button> {
-                "Color" => ButtonColor.Danger
-
-                on.click (fun _ -> Remove row.Id |> dispatch)
-
-                "Remove"
-              }
+              sprintf "%.2f" value.Price
             }
-          | false -> empty ()
-      }
+
+          td {
+            cond isEditMode
+            <| function
+              | true ->
+                input {
+                  attr.``class`` "form-control"
+                  attr.``type`` "number"
+                  attr.step "0.01"
+                  attr.value (row.TotalAmount |> string)
+                  on.change (fun e -> TypeUpdate(row.Id, row.Type, decimal (string e.Value)) |> dispatch)
+                }
+              | false -> textf "%.2f" row.TotalAmount
+          }
+
+          cond isEditMode
+          <| function
+            | true ->
+              td {
+                comp<Button> {
+                  "Color" => ButtonColor.Danger
+
+                  on.click (fun _ -> Remove row.Id |> dispatch)
+
+                  "Remove"
+                }
+              }
+            | false -> empty ()
+        }
 
       type RowComponent() =
         inherit ElmishComponent<RowModel, Message>()
@@ -378,22 +389,24 @@ module Receipt =
           }
 
           forEach grid.People
-          <| fun person -> th {
-            attr.colspan 2
+          <| fun person ->
+            th {
+              attr.colspan 2
 
-            cond isEditMode
-            <| function
-              | true -> input {
-                  attr.``class`` "form-control d-inline-block w-full"
-                  attr.``type`` "text"
-                  attr.value person.Name
+              cond isEditMode
+              <| function
+                | true ->
+                  input {
+                    attr.``class`` "form-control d-inline-block w-full"
+                    attr.``type`` "text"
+                    attr.value person.Name
 
-                  on.change (fun e ->
-                    PersonMsg(Person.Message.UpdateName(PersonId person.Id, string e.Value))
-                    |> dispatch)
-                }
-              | false -> text person.Name
-          }
+                    on.change (fun e ->
+                      PersonMsg(Person.Message.UpdateName(PersonId person.Id, string e.Value))
+                      |> dispatch)
+                  }
+                | false -> text person.Name
+            }
 
           th {
             attr.rowspan 2
@@ -405,7 +418,8 @@ module Receipt =
 
           cond isEditMode
           <| function
-            | true -> th {
+            | true ->
+              th {
                 attr.rowspan 2
                 "Action"
               }
@@ -414,21 +428,22 @@ module Receipt =
 
         tr {
           forEach grid.People
-          <| fun _ -> concat {
-            th {
-              attr.``class`` "quantity-column"
+          <| fun _ ->
+            concat {
+              th {
+                attr.``class`` "quantity-column"
 
-              defaultColumnStyle
-              "Quantity"
+                defaultColumnStyle
+                "Quantity"
+              }
+
+              th {
+                attr.``class`` "user-share-column"
+
+                defaultColumnStyle
+                "Price"
+              }
             }
-
-            th {
-              attr.``class`` "user-share-column"
-
-              defaultColumnStyle
-              "Price"
-            }
-          }
         }
       }
 
@@ -438,65 +453,13 @@ module Receipt =
         td { strong { "Fees Subtotal" } }
 
         forEach row.Values
-        <| fun value -> td {
-          attr.colspan 2
-          attr.``class`` (getCellClass value.Price)
-
-          strong { sprintf "%.2f" value.Price }
-        }
-
-        td { strong { sprintf "%.2f" row.TotalAmount } }
-
-        cond isEditMode
-        <| function
-          | true -> td { "" }
-          | false -> empty ()
-      }
-
-    let private renderItemsSubtotalRow (row: ViewModel.ReceiptGridState.ItemsSubtotalRow) isEditMode = tr {
-      td { strong { "Items Subtotal" } }
-
-      forEach row.Values
-      <| fun value -> concat {
-        td {
-          attr.``class`` (getCellClass value.Price)
-
-          value.Share |> string
-        }
-
-        td {
-          attr.``class`` (getCellClass value.Price)
-
-          strong { sprintf "%.2f" value.Price }
-        }
-      }
-
-      td { strong { sprintf "%.2f" row.TotalAmount } }
-
-      cond isEditMode
-      <| function
-        | true -> td { "" }
-        | false -> empty ()
-    }
-
-    let private renderTotalRow (row: ViewModel.ReceiptGridState.TotalRow) isEditMode = tfoot {
-      tr {
-        td { strong { "Total" } }
-
-        forEach row.Values
-        <| fun value -> concat {
+        <| fun value ->
           td {
-            attr.``class`` (getCellClass value.Price)
-
-            value.Share |> string
-          }
-
-          td {
+            attr.colspan 2
             attr.``class`` (getCellClass value.Price)
 
             strong { sprintf "%.2f" value.Price }
           }
-        }
 
         td { strong { sprintf "%.2f" row.TotalAmount } }
 
@@ -505,12 +468,70 @@ module Receipt =
           | true -> td { "" }
           | false -> empty ()
       }
-    }
+
+    let private renderItemsSubtotalRow (row: ViewModel.ReceiptGridState.ItemsSubtotalRow) isEditMode =
+      tr {
+        td { strong { "Items Subtotal" } }
+
+        forEach row.Values
+        <| fun value ->
+          concat {
+            td {
+              attr.``class`` (getCellClass value.Price)
+
+              value.Share |> string
+            }
+
+            td {
+              attr.``class`` (getCellClass value.Price)
+
+              strong { sprintf "%.2f" value.Price }
+            }
+          }
+
+        td { strong { sprintf "%.2f" row.TotalAmount } }
+
+        cond isEditMode
+        <| function
+          | true -> td { "" }
+          | false -> empty ()
+      }
+
+    let private renderTotalRow (row: ViewModel.ReceiptGridState.TotalRow) isEditMode =
+      tfoot {
+        tr {
+          td { strong { "Total" } }
+
+          forEach row.Values
+          <| fun value ->
+            concat {
+              td {
+                attr.``class`` (getCellClass value.Price)
+
+                value.Share |> string
+              }
+
+              td {
+                attr.``class`` (getCellClass value.Price)
+
+                strong { sprintf "%.2f" value.Price }
+              }
+            }
+
+          td { strong { sprintf "%.2f" row.TotalAmount } }
+
+          cond isEditMode
+          <| function
+            | true -> td { "" }
+            | false -> empty ()
+        }
+      }
 
     let view model dispatch =
       match model.Grid with
       | None -> Loading.render () dispatch
-      | Some grid -> div {
+      | Some grid ->
+        div {
           attr.``class`` "d-flex flex-column gap-1"
           attr.style "width: max-content"
 
@@ -545,7 +566,8 @@ module Receipt =
 
               cond model.IsEditMode
               <| function
-                | true -> concat {
+                | true ->
+                  concat {
                     comp<Tooltip> {
                       "Title" => "Add person"
                       "Placement" => TooltipPlacement.Top
