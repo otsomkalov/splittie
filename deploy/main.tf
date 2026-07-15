@@ -150,6 +150,10 @@ resource "azurerm_function_app_flex_consumption" "func-splittie" {
 
       OpenAI__Endpoint = "${azurerm_cognitive_account.ca-splittie.endpoint}openai/v1"
       OpenAI__Model    = azurerm_cognitive_deployment.openai_model.name
+
+      Keycloak__Domain = var.keycloak-domain
+      Keycloak__Realm  = var.keycloak-realm
+      Keycloak__Broker = var.keycloak-broker
     },
     {
       for idx, mimeType in var.supported-image-types : "Image__SupportedMimeTypes__${idx}" => mimeType

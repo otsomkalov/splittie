@@ -16,3 +16,7 @@ Content-Type: image/jpeg
 < .\test.jpg
 
 ###
+
+###
+GET {{url}}users/me/friends
+Authorization: Bearer {{token}}

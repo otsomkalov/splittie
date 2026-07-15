@@ -1,18 +1,17 @@
 [*]
 charset=utf-8
+indent_size=2
 end_of_line=crlf
 trim_trailing_whitespace=true
 indent_style=space
 insert_final_newline=false
 max_line_length=140
 
-[*.{json,xml,csproj,fsproj,fs,fsi,html,js,css}]
-indent_size=2
-fsharp_newline_before_multiline_computation_expression=false
-fsharp_multi_line_lambda_closing_newline=false
-
 [*.cs]
 indent_size=4
+
+fsharp_newline_before_multiline_computation_expression=false
+fsharp_multi_line_lambda_closing_newline=false
 
 # .NET
 dotnet_sort_system_directives_first=true
