@@ -15,11 +15,12 @@ type ReceiptRepo
   let queue = queueService.GetQueueClient(storageSettings.Queue)
 
   interface IReceiptRepo with
-    member this.QueueParsing(receipt) = task {
-      let msg: Entities.ParseReceiptRequest = { Id = receipt.Id.Value }
+    member this.QueueParsing(receipt) =
+      task {
+        let msg: Entities.ParseReceiptRequest = { Id = receipt.Id.Value }
 
-      do! queue.SendMessageAsync(JSON.serialize msg) |> Task.ignore
-    }
+        do! queue.SendMessageAsync(JSON.serialize msg) |> Task.ignore
+      }
 
     member this.Get(ReceiptId id) =
       let filter = Builders.Filter.Eq("_id", id)
@@ -27,11 +28,12 @@ type ReceiptRepo
       collection.Find(filter).FirstOrDefaultAsync()
       |> Task.map (Option.ofObj >> Option.map _.ToDomain())
 
-    member this.Save(receipt) = task {
-      let updateOptions = ReplaceOptions(IsUpsert = true)
-      let filter = Builders.Filter.Eq("_id", receipt.Id.Value)
+    member this.Save(receipt) =
+      task {
+        let updateOptions = ReplaceOptions(IsUpsert = true)
+        let filter = Builders.Filter.Eq("_id", receipt.Id.Value)
 
-      do!
-        collection.ReplaceOneAsync(filter, Entities.Receipt.FromDomain receipt, updateOptions)
-        |> Task.ignore
-    }
+        do!
+          collection.ReplaceOneAsync(filter, Entities.Receipt.FromDomain receipt, updateOptions)
+          |> Task.ignore
+      }

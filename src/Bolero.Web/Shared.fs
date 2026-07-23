@@ -5,15 +5,16 @@ open Bolero.Html
 
 [<RequireQualifiedAccess>]
 module Loading =
-  let render () _ = div {
-    attr.``class`` "d-flex flex-column align-items-center justify-content-center vh-100"
+  let render () _ =
+    div {
+      attr.``class`` "d-flex flex-column align-items-center justify-content-center vh-100"
 
-    comp<Spinner> {
-      "Type" => SpinnerType.Border
-      "Color" => SpinnerColor.Primary
-      "VisuallyHiddenText" => "Loading..."
+      comp<Spinner> {
+        "Type" => SpinnerType.Border
+        "Color" => SpinnerColor.Primary
+        "VisuallyHiddenText" => "Loading..."
+      }
     }
-  }
 
 let getCellClass (value: decimal) =
   [ "text-end"

@@ -34,8 +34,19 @@ variable "web-url" {
   type = string
 }
 
+variable "keycloak-domain" {
+  type = string
+}
+
+variable "keycloak-realm" {
+  type = string
+}
+
+variable "keycloak-broker" {
+  type = string
+}
+
 variable "env" {
   type    = string
   default = "dev"
 }
-

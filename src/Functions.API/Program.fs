@@ -3,6 +3,7 @@ module Functions.API.Startup
 #nowarn "20"
 
 open System
+open System.Net.Http
 open System.Reflection
 open System.Security.Claims
 open System.Text.Json
@@ -17,8 +18,10 @@ open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Logging.ApplicationInsights
+open Microsoft.Extensions.Options
 open Parser.OpenAI
 open Shared
+open otsom.fs.Extensions.DependencyInjection
 
 [<RequireQualifiedAccess>]
 module KeyVault =
@@ -61,6 +64,19 @@ let private configureServices (builder: FunctionsApplicationBuilder) =
   services |> Startup.addInfra cfg |> Startup.addOpenAIParser cfg
 
   services.Configure<ImageSettings>(cfg.GetRequiredSection ImageSettings.SectionName)
+  services.Configure<KeycloakSettings>(cfg.GetRequiredSection KeycloakSettings.SectionName)
+
+  services.AddHttpClient(
+    nameof SpltwisePaymentPlatformFactory,
+    fun (sp: IServiceProvider) (client: HttpClient) ->
+      let keycloakSettings = sp.GetRequiredService<IOptions<KeycloakSettings>>().Value
+
+      client.BaseAddress <- (Uri keycloakSettings.Domain)
+
+      ()
+  )
+
+  services.BuildSingleton<_, _, _>(spltwisePaymentPlatformFactory)
 
   services.AddMvcCore().AddJsonOptions(fun opts -> JSON.FsharpOptions.AddToJsonSerializerOptions opts.JsonSerializerOptions)
 

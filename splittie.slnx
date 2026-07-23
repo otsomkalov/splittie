@@ -1,15 +1,19 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/Domain/Domain.fsproj" />
-    <Project Path="src/Infra/Infra.fsproj" />
-    <Project Path="src/Parser.OpenAI/Parser.OpenAI.fsproj" />
-    <Project Path="src/Shared/Shared.fsproj" />
+    <Project Path="src/Domain/Domain.fsproj"/>
+    <Project Path="src/Infra/Infra.fsproj"/>
+    <Project Path="src/Parser.OpenAI/Parser.OpenAI.fsproj"/>
+    <Project Path="src/Shared/Shared.fsproj"/>
+  </Folder>
+  <Folder Name="/src/PaymentPlatform/">
+    <Project Path="src/PaymentPlatform.Splitwise/PaymentPlatform.Splitwise.fsproj"/>
+    <Project Path="src/PaymentPlatform/PaymentPlatform.fsproj"/>
   </Folder>
   <Folder Name="/src/Runners/">
-    <Project Path="src/Bolero.Web/Bolero.Web.fsproj" />
-    <Project Path="src/Functions.API/Functions.API.fsproj" />
+    <Project Path="src/Bolero.Web/Bolero.Web.fsproj"/>
+    <Project Path="src/Functions.API/Functions.API.fsproj"/>
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/Bolero.Web.Tests/Bolero.Web.Tests.fsproj" />
+    <Project Path="tests/Bolero.Web.Tests/Bolero.Web.Tests.fsproj"/>
   </Folder>
 </Solution>

@@ -30,44 +30,47 @@ type Env(httpClientFactory: IHttpClientFactory, toastService: ToastService, logg
   let receiptsRoute = "receipts"
 
   interface IEnv with
-    member this.GetReceipt(ReceiptId receiptId) = task {
-      try
-        let! result = client.GetFromJsonAsync<Receipt>($"{receiptsRoute}/{receiptId}", JSON.SerializerOptions)
+    member this.GetReceipt(ReceiptId receiptId) =
+      task {
+        try
+          let! result = client.GetFromJsonAsync<Receipt>($"{receiptsRoute}/{receiptId}", JSON.SerializerOptions)
 
-        return Some result
-      with
-      | :? HttpRequestException as requestException when requestException.StatusCode = HttpStatusCode.NotFound -> return None
-      | e ->
-        logger.LogError(e, "Error during getting receipt")
+          return Some result
+        with
+        | :? HttpRequestException as requestException when requestException.StatusCode = HttpStatusCode.NotFound -> return None
+        | e ->
+          logger.LogError(e, "Error during getting receipt")
 
-        return None
-    }
+          return None
+      }
 
-    member this.UploadReceipt(receiptImage) = task {
-      use formData = new MultipartFormDataContent()
-      use fileStream = receiptImage.OpenReadStream(maxFileSize)
-      use streamContent = new StreamContent(fileStream)
+    member this.UploadReceipt(receiptImage) =
+      task {
+        use formData = new MultipartFormDataContent()
+        use fileStream = receiptImage.OpenReadStream(maxFileSize)
+        use streamContent = new StreamContent(fileStream)
 
-      streamContent.Headers.ContentType <- MediaTypeHeaderValue.Parse receiptImage.ContentType
+        streamContent.Headers.ContentType <- MediaTypeHeaderValue.Parse receiptImage.ContentType
 
-      formData.Add(streamContent, "receipt", receiptImage.Name)
+        formData.Add(streamContent, "receipt", receiptImage.Name)
 
-      let! result = client.PostAsync(receiptsRoute, formData)
+        let! result = client.PostAsync(receiptsRoute, formData)
 
-      logger.LogInformation("Receipt uploaded successfully, {Status}", result.StatusCode)
+        logger.LogInformation("Receipt uploaded successfully, {Status}", result.StatusCode)
 
-      let! response = result.Content.ReadFromJsonAsync<UploadReceiptResponse>(JSON.SerializerOptions)
+        let! response = result.Content.ReadFromJsonAsync<UploadReceiptResponse>(JSON.SerializerOptions)
 
-      return ReceiptId(response.Id)
-    }
+        return ReceiptId(response.Id)
+      }
 
     member this.ShowNotification(toast) = toastService.Notify(toast)
 
-    member this.ExportReceiptTableAsImage(ReceiptId receiptId, elementId) = task {
-      do! jsRuntime.InvokeVoidAsync("exportToImage", receiptId, elementId)
+    member this.ExportReceiptTableAsImage(ReceiptId receiptId, elementId) =
+      task {
+        do! jsRuntime.InvokeVoidAsync("exportToImage", receiptId, elementId)
 
-      return ()
-    }
+        return ()
+      }
 
 type APIAuthorizationMessageHandler(accessTokenProvider: IAccessTokenProvider, navigationManager: NavigationManager, cfg: IConfiguration) =
   inherit AuthorizationMessageHandler(accessTokenProvider, navigationManager)

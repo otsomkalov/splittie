@@ -28,34 +28,35 @@ type OpenAIReceiptParser(chatClient: ChatClient, logger: ILogger<OpenAIReceiptPa
   let Prompt = "Analyze this image and return structured JSON."
 
   interface IReceiptParser with
-    member this.Parse(imageUri) = task {
-      let! schemaBytes = File.ReadAllBytesAsync(Path.Combine(AppContext.BaseDirectory, "schema.json"))
+    member this.Parse(imageUri) =
+      task {
+        let! schemaBytes = File.ReadAllBytesAsync(Path.Combine(AppContext.BaseDirectory, "schema.json"))
 
-      let responseFormat =
-        ChatResponseFormat.CreateJsonSchemaFormat("response_schema", BinaryData.FromBytes(schemaBytes), jsonSchemaIsStrict = true)
+        let responseFormat =
+          ChatResponseFormat.CreateJsonSchemaFormat("response_schema", BinaryData.FromBytes(schemaBytes), jsonSchemaIsStrict = true)
 
-      let message: ChatMessage =
-        UserChatMessage(
-          [ ChatMessageContentPart.CreateTextPart(Prompt)
-            ChatMessageContentPart.CreateImagePart(imageUri) ]
-        )
+        let message: ChatMessage =
+          UserChatMessage(
+            [ ChatMessageContentPart.CreateTextPart(Prompt)
+              ChatMessageContentPart.CreateImagePart(imageUri) ]
+          )
 
-      let completionOptions = ChatCompletionOptions(ResponseFormat = responseFormat)
+        let completionOptions = ChatCompletionOptions(ResponseFormat = responseFormat)
 
-      logger.LogInformation("Sending receipt image for analysis")
+        logger.LogInformation("Sending receipt image for analysis")
 
-      try
-        let! response = chatClient.CompleteChatAsync([ message ], completionOptions)
+        try
+          let! response = chatClient.CompleteChatAsync([ message ], completionOptions)
 
-        let responseContent = response.Value.Content[0].Text
+          let responseContent = response.Value.Content[0].Text
 
-        logger.LogInformation("Receipt parsed successfully")
+          logger.LogInformation("Receipt parsed successfully")
 
-        let receipt = JSON.deserialize<ParsingResult> responseContent
+          let receipt = JSON.deserialize<ParsingResult> responseContent
 
-        return Ok receipt
-      with e ->
-        logger.LogError(e, "Error during parsing receipt image")
+          return Ok receipt
+        with e ->
+          logger.LogError(e, "Error during parsing receipt image")
 
-        return Error e.Message
-    }
+          return Error e.Message
+      }

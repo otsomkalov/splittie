@@ -32,12 +32,15 @@
   <ItemGroup>
     <Compile Include="Shared.fs"/>
     <Compile Include="Functions\ReceiptFunctions.fs"/>
+    <Compile Include="Functions\UserFunctions.fs" />
     <Compile Include="Program.fs"/>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Infra\Infra.fsproj"/>
     <ProjectReference Include="..\Parser.OpenAI\Parser.OpenAI.fsproj"/>
+    <ProjectReference Include="..\PaymentPlatform.Splitwise\PaymentPlatform.Splitwise.fsproj" />
+    <ProjectReference Include="..\PaymentPlatform\PaymentPlatform.fsproj" />
   </ItemGroup>
 
   <ItemGroup>

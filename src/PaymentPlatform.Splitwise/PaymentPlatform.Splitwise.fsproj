@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Library.fs"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Splitwise" Version="0.1.2"/>
+    <PackageReference Include="otsom.fs.Extensions" Version="0.1.5"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PaymentPlatform\PaymentPlatform.fsproj"/>
+  </ItemGroup>
+
+</Project>
