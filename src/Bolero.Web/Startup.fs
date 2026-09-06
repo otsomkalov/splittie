@@ -13,6 +13,7 @@ open Microsoft.AspNetCore.Components
 open Microsoft.AspNetCore.Components.WebAssembly.Authentication
 open Microsoft.AspNetCore.Components.WebAssembly.Hosting
 open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.FileProviders
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Configuration
 open Microsoft.JSInterop

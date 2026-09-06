@@ -13,6 +13,8 @@ open Microsoft.AspNetCore.Components.Authorization
 open Microsoft.AspNetCore.Components.Routing
 open Microsoft.AspNetCore.Components.Web
 open Microsoft.AspNetCore.Components.WebAssembly.Authentication
+open Microsoft.AspNetCore.Components.WebAssembly.Hosting
+open Microsoft.Extensions.Logging
 
 [<Route("")>]
 type Home() =
@@ -87,7 +89,7 @@ module NotFound =
       }
     }
 
-type Root() =
+type Root(environment: IWebAssemblyHostEnvironment, logger: ILogger<Root>) =
   inherit Component()
 
   let unauthorizedView (authenticationState: AuthenticationState) =
@@ -102,6 +104,9 @@ type Root() =
         "You are not authorized to access this page."
       }
     | _ -> comp<RedirectToLogin> { attr.empty () }
+
+  override this.OnInitialized() =
+    logger.LogInformation("Initialized with environment: {Environment}", environment.Environment)
 
   override this.Render() =
     comp<CascadingAuthenticationState> {
