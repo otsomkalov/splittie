@@ -14,11 +14,10 @@ pr:
     include:
       - src
 
+pool: 'self-hosted'
+
 variables:
-  - name: Runtime
-    value: 'linux-x64'
-  - name: BuildConfiguration
-    value: 'Release'
+  Configuration: 'Release'
 
 stages:
   - stage: build
@@ -52,21 +51,21 @@ stages:
             inputs:
               command: 'build'
               projects: 'src/**/Bolero.Web.fsproj'
-              arguments: '--configuration $(BuildConfiguration)'
+              arguments: '-c $(Configuration)'
               publishWebProjects: false
           - task: DotNetCoreCLI@2
             displayName: 'Build Azure Functions Web API'
             inputs:
               command: 'build'
               projects: 'src/**/Functions.API.fsproj'
-              arguments: '-r $(Runtime) --configuration $(BuildConfiguration)'
+              arguments: '-c $(Configuration)'
               publishWebProjects: false
           - task: DotNetCoreCLI@2
             displayName: 'Run all tests'
             inputs:
               command: 'test'
-              projects: 'tests/**/**.fsproj'
-              arguments: '--configuration $(BuildConfiguration) --collect:"XPlat Code Coverage"'
+              projects: 'tests/**/*.fsproj'
+              arguments: '-c $(Configuration) --coverage --coverage-output-format cobertura'
           - task: PublishCodeCoverageResults@2
             displayName: 'Publish coverage'
             inputs:
@@ -76,16 +75,15 @@ stages:
             inputs:
               command: 'publish'
               projects: 'src/**/Functions.API.fsproj'
-              arguments: '-r $(Runtime) -o $(Build.ArtifactStagingDirectory)/Functions.API /p:InformationalVersion=$(Build.BuildNumber)'
+              arguments: '-r linux-x64 -o $(Build.ArtifactStagingDirectory)/Functions.API /p:InformationalVersion=$(Build.BuildNumber)'
               publishWebProjects: false
           - task: DotNetCoreCLI@2
             displayName: 'Publish Bolero Web'
             inputs:
               command: 'publish'
               projects: 'src/**/Bolero.Web.fsproj'
-              arguments: '-r $(Runtime) -o $(Build.ArtifactStagingDirectory) /p:InformationalVersion=$(Build.BuildNumber)'
+              arguments: '-o $(Build.ArtifactStagingDirectory)/Bolero.Web /p:InformationalVersion=$(Build.BuildNumber) /p:WasmApplicationEnvironmentName=Production'
               publishWebProjects: false
-              zipAfterPublish: false
           - task: PublishBuildArtifacts@1
             displayName: 'Pack Azure Functions Web API'
             inputs:
@@ -94,7 +92,7 @@ stages:
           - task: PublishBuildArtifacts@1
             displayName: 'Pack Bolero Web'
             inputs:
-              PathtoPublish: '$(Build.ArtifactStagingDirectory)/Bolero.Web/wwwroot'
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)/Bolero.Web'
               ArtifactName: 'Bolero.Web'
   - stage: deploy_dev
     displayName: 'Deploy DEV'
@@ -112,6 +110,12 @@ stages:
               steps:
                 - download: current
                   artifact: Bolero.Web
+                - task: ExtractFiles@1
+                  inputs:
+                    archiveFilePatterns: '$(Pipeline.Workspace)/Bolero.Web/Bolero.Web.zip'
+                    destinationFolder: '$(Pipeline.Workspace)/Bolero.Web/dist'
+                    cleanDestinationFolder: true
+                    overwriteExistingFiles: true
                 - task: AzureCLI@2
                   displayName: 'Copy Bolero Web to Blob Storage'
                   inputs:
@@ -123,7 +127,7 @@ stages:
                         --auth-mode login \
                         --account-name $(web-storage-account) \
                         -d '$web' \
-                        -s $(Pipeline.Workspace)/Bolero.Web/ \
+                        -s $(Pipeline.Workspace)/Bolero.Web/dist/wwwroot \
                         --overwrite \
                         --no-progress
       - deployment: deploy_api
